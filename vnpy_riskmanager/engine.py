@@ -1,12 +1,13 @@
 """"""
 
 from collections import defaultdict
+from typing import Dict
 
-from vnpy.trader.object import OrderRequest, LogData
+from vnpy.trader.object import OrderData, OrderRequest, LogData
 from vnpy.event import Event, EventEngine, EVENT_TIMER
 from vnpy.trader.engine import BaseEngine, MainEngine
 from vnpy.trader.event import EVENT_TRADE, EVENT_ORDER, EVENT_LOG
-from vnpy.trader.constant import Status
+from vnpy.trader.constant import Direction, Status
 from vnpy.trader.utility import load_json, save_json
 
 
@@ -21,23 +22,25 @@ class RiskManagerEngine(BaseEngine):
         """"""
         super().__init__(main_engine, event_engine, APP_NAME)
 
-        self.active = False
+        self.active: bool = False
 
-        self.order_flow_count = 0
-        self.order_flow_limit = 50
+        self.order_flow_count: int = 0
+        self.order_flow_limit: int = 50
 
-        self.order_flow_clear = 1
-        self.order_flow_timer = 0
+        self.order_flow_clear: int = 1
+        self.order_flow_timer: int = 0
 
-        self.order_size_limit = 100
+        self.order_size_limit: int = 100
 
-        self.trade_count = 0
-        self.trade_limit = 1000
+        self.trade_count: int = 0
+        self.trade_limit: int = 1000
 
-        self.order_cancel_limit = 500
-        self.order_cancel_counts = defaultdict(int)
+        self.order_cancel_limit: int = 500
+        self.order_cancel_counts: Dict[str, int] = defaultdict(int)
 
-        self.active_order_limit = 50
+        self.active_order_limit: int = 50
+
+        self.active_order_books: Dict[str, ActiveOrderBook] = {}
 
         self.load_setting()
         self.register_event()
@@ -107,7 +110,11 @@ class RiskManagerEngine(BaseEngine):
 
     def process_order_event(self, event: Event):
         """"""
-        order = event.data
+        order: OrderData = event.data
+
+        order_book = self.get_order_book(order.vt_symbol)
+        order_book.update_order(order)
+
         if order.status != Status.CANCELLED:
             return
         self.order_cancel_counts[order.symbol] += 1
@@ -171,6 +178,63 @@ class RiskManagerEngine(BaseEngine):
                 f"当日{req.symbol}撤单次数{self.order_cancel_counts[req.symbol]}，超过限制{self.order_cancel_limit}")
             return False
 
+        # Check order self trade
+        order_book = self.get_order_book(req.vt_symbol)
+        if req.direction == Direction.LONG:
+            best_ask = order_book.get_best_ask()
+            if best_ask and req.price >= best_ask:
+                self.write_log(f"买入价格{req.price}大于等于已挂最低卖价{best_ask}，可能导致自成交")
+                return False
+        else:
+            best_bid = order_book.get_best_bid()
+            if best_bid and req.price <= best_bid:
+                self.write_log(f"卖出价格{req.price}小于等于已挂最低买价{best_bid}，可能导致自成交")
+                return False
+
         # Add flow count if pass all checks
         self.order_flow_count += 1
         return True
+
+    def get_order_book(self, vt_symbol: str) -> "ActiveOrderBook":
+        """"""
+        order_book = self.active_order_books.get(vt_symbol, None)
+        if not order_book:
+            order_book = ActiveOrderBook(vt_symbol)
+            self.active_order_books[vt_symbol] = order_book
+        return order_book
+
+
+class ActiveOrderBook:
+    """活动委托簿"""
+    
+    def __init__(self, vt_symbol: str) -> None:
+        """"""
+        self.vt_symbol: str = vt_symbol
+
+        self.bid_prices: Dict[str, float] = {}
+        self.ask_prices: Dict[str, float] = {}
+
+    def update_order(self, order: OrderData) -> None:
+        """更新委托数据"""
+        if order.is_active():
+            if order.direction == Direction.LONG:
+                self.bid_prices[order.vt_orderid] = order.price
+            else:
+                self.ask_prices[order.vt_orderid] = order.price
+        else:
+            if order.vt_orderid in self.bid_prices:
+                self.bid_prices.pop(order.vt_orderid)
+            elif order.vt_orderid in self.ask_prices:
+                self.ask_prices.pop(order.vt_orderid)
+
+    def get_best_bid(self) -> float:
+        """获取最高买价"""
+        if not self.bid_prices:
+            return 0
+        return max(self.bid_prices.values())
+
+    def get_best_ask(self) -> float:
+        """获取最低卖价"""
+        if not self.ask_prices:
+            return 0
+        return min(self.ask_prices.values())
