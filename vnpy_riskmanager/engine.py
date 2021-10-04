@@ -3,10 +3,10 @@
 from collections import defaultdict
 from typing import Callable, Dict
 
+from vnpy.event import Event, EventEngine
 from vnpy.trader.object import OrderData, OrderRequest, LogData, TradeData
-from vnpy.event import Event, EventEngine, EVENT_TIMER
 from vnpy.trader.engine import BaseEngine, MainEngine
-from vnpy.trader.event import EVENT_TRADE, EVENT_ORDER, EVENT_LOG
+from vnpy.trader.event import EVENT_TRADE, EVENT_ORDER, EVENT_LOG, EVENT_TIMER
 from vnpy.trader.constant import Direction, Status
 from vnpy.trader.utility import load_json, save_json
 
@@ -14,7 +14,7 @@ from vnpy.trader.utility import load_json, save_json
 APP_NAME = "RiskManager"
 
 
-class RiskManagerEngine(BaseEngine):
+class RiskEngine(BaseEngine):
     """风控引擎"""
 
     setting_filename = "risk_manager_setting.json"
@@ -34,7 +34,7 @@ class RiskManagerEngine(BaseEngine):
         self.order_size_limit: int = 100
 
         self.trade_count: int = 0
-        self.trade_volume_limit: int = 1000
+        self.trade_limit: int = 1000
 
         self.order_cancel_limit: int = 500
         self.order_cancel_counts: Dict[str, int] = defaultdict(int)
@@ -68,7 +68,7 @@ class RiskManagerEngine(BaseEngine):
         self.order_flow_limit = setting["order_flow_limit"]
         self.order_flow_clear = setting["order_flow_clear"]
         self.order_size_limit = setting["order_size_limit"]
-        self.trade_volume_limit = setting["trade_volume_limit"]
+        self.trade_limit = setting["trade_limit"]
         self.active_order_limit = setting["active_order_limit"]
         self.order_cancel_limit = setting["order_cancel_limit"]
 
@@ -84,7 +84,7 @@ class RiskManagerEngine(BaseEngine):
             "order_flow_limit": self.order_flow_limit,
             "order_flow_clear": self.order_flow_clear,
             "order_size_limit": self.order_size_limit,
-            "trade_volume_limit": self.trade_volume_limit,
+            "trade_limit": self.trade_limit,
             "active_order_limit": self.active_order_limit,
             "order_cancel_limit": self.order_cancel_limit,
         }
@@ -155,9 +155,9 @@ class RiskManagerEngine(BaseEngine):
             return False
 
         # Check trade volume
-        if self.trade_count >= self.trade_volume_limit:
+        if self.trade_count >= self.trade_limit:
             self.write_log(
-                f"今日总成交合约数量{self.trade_count}，超过限制{self.trade_volume_limit}")
+                f"今日总成交合约数量{self.trade_count}，超过限制{self.trade_limit}")
             return False
 
         # Check flow count
