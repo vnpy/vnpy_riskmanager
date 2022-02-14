@@ -51,7 +51,7 @@ class RiskManager(QtWidgets.QDialog):
 
         # Set Fix Size
         hint = self.sizeHint()
-        self.setFixedSize(hint.width() * 1.2, hint.height())
+        self.setFixedSize(int(hint.width() * 1.2), hint.height())
 
     def save_setting(self) -> None:
         """"""
