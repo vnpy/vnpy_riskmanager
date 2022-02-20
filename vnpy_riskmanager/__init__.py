@@ -35,4 +35,4 @@ class RiskManagerApp(BaseApp):
     display_name = "交易风控"
     engine_class = RiskEngine
     widget_name = "RiskManager"
-    icon_name = "rm.ico"
+    icon_name = str(app_path.joinpath("ui", "rm.ico"))
