@@ -11,13 +11,13 @@ from vnpy.trader.constant import Direction, Status
 from vnpy.trader.utility import load_json, save_json
 
 
-APP_NAME = "RiskManager"
+APP_NAME: str = "RiskManager"
 
 
 class RiskEngine(BaseEngine):
     """风控引擎"""
 
-    setting_filename = "risk_manager_setting.json"
+    setting_filename: str = "risk_manager_setting.json"
 
     def __init__(self, main_engine: MainEngine, event_engine: EventEngine) -> None:
         """"""
@@ -79,7 +79,7 @@ class RiskEngine(BaseEngine):
 
     def get_setting(self) -> dict:
         """"""
-        setting = {
+        setting: dict = {
             "active": self.active,
             "order_flow_limit": self.order_flow_limit,
             "order_flow_clear": self.order_flow_clear,
@@ -92,7 +92,7 @@ class RiskEngine(BaseEngine):
 
     def load_setting(self) -> None:
         """"""
-        setting = load_json(self.setting_filename)
+        setting: dict = load_json(self.setting_filename)
         if not setting:
             return
 
@@ -100,7 +100,7 @@ class RiskEngine(BaseEngine):
 
     def save_setting(self) -> None:
         """"""
-        setting = self.get_setting()
+        setting: dict = self.get_setting()
         save_json(self.setting_filename, setting)
 
     def register_event(self) -> None:
@@ -113,7 +113,7 @@ class RiskEngine(BaseEngine):
         """"""
         order: OrderData = event.data
 
-        order_book = self.get_order_book(order.vt_symbol)
+        order_book: ActiveOrderBook = self.get_order_book(order.vt_symbol)
         order_book.update_order(order)
 
         if order.status != Status.CANCELLED:
@@ -174,7 +174,7 @@ class RiskEngine(BaseEngine):
             return False
 
         # Check order cancel counts
-        order_cancel_count = self.order_cancel_counts.get(req.vt_symbol, 0)
+        order_cancel_count: int = self.order_cancel_counts.get(req.vt_symbol, 0)
         if order_cancel_count >= self.order_cancel_limit:
             self.write_log(f"当日{req.vt_symbol}撤单次数{order_cancel_count}，超过限制{self.order_cancel_limit}")
             return False
@@ -182,12 +182,12 @@ class RiskEngine(BaseEngine):
         # Check order self trade
         order_book: ActiveOrderBook = self.get_order_book(req.vt_symbol)
         if req.direction == Direction.LONG:
-            best_ask = order_book.get_best_ask()
+            best_ask: float = order_book.get_best_ask()
             if best_ask and req.price >= best_ask:
                 self.write_log(f"买入价格{req.price}大于等于已挂最低卖价{best_ask}，可能导致自成交")
                 return False
         else:
-            best_bid = order_book.get_best_bid()
+            best_bid: float = order_book.get_best_bid()
             if best_bid and req.price <= best_bid:
                 self.write_log(f"卖出价格{req.price}小于等于已挂最低买价{best_bid}，可能导致自成交")
                 return False
@@ -200,7 +200,7 @@ class RiskEngine(BaseEngine):
         """"""
         order_book: ActiveOrderBook = self.active_order_books.get(vt_symbol, None)
         if not order_book:
-            order_book = ActiveOrderBook(vt_symbol)
+            order_book: ActiveOrderBook = ActiveOrderBook(vt_symbol)
             self.active_order_books[vt_symbol] = order_book
         return order_book
 
