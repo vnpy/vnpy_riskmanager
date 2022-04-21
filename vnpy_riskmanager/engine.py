@@ -1,7 +1,5 @@
-""""""
-
 from collections import defaultdict
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 
 from vnpy.event import Event, EventEngine
 from vnpy.trader.object import OrderData, OrderRequest, LogData, TradeData
@@ -11,7 +9,7 @@ from vnpy.trader.constant import Direction, Status
 from vnpy.trader.utility import load_json, save_json
 
 
-APP_NAME: str = "RiskManager"
+APP_NAME = "RiskManager"
 
 
 class RiskEngine(BaseEngine):
@@ -198,9 +196,9 @@ class RiskEngine(BaseEngine):
 
     def get_order_book(self, vt_symbol: str) -> "ActiveOrderBook":
         """"""
-        order_book: ActiveOrderBook = self.active_order_books.get(vt_symbol, None)
+        order_book: Optional[ActiveOrderBook] = self.active_order_books.get(vt_symbol, None)
         if not order_book:
-            order_book: ActiveOrderBook = ActiveOrderBook(vt_symbol)
+            order_book = ActiveOrderBook(vt_symbol)
             self.active_order_books[vt_symbol] = order_book
         return order_book
 

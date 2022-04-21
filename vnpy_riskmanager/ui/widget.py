@@ -1,6 +1,6 @@
 from vnpy.event import EventEngine
 from vnpy.trader.engine import MainEngine
-from vnpy.trader.ui import QtWidgets
+from vnpy.trader.ui import QtWidgets, QtCore
 
 from ..engine import APP_NAME, RiskEngine
 
@@ -50,7 +50,7 @@ class RiskManager(QtWidgets.QDialog):
         self.setLayout(form)
 
         # Set Fix Size
-        hint = self.sizeHint()
+        hint: QtCore.QSize = self.sizeHint()
         self.setFixedSize(int(hint.width() * 1.2), hint.height())
 
     def save_setting(self) -> None:
