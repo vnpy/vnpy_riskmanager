@@ -1,6 +1,6 @@
 from vnpy.event import EventEngine
 from vnpy.trader.engine import MainEngine
-from vnpy.trader.ui import QtWidgets
+from vnpy.trader.ui import QtWidgets, QtCore
 
 from ..engine import APP_NAME, RiskEngine
 
@@ -23,21 +23,21 @@ class RiskManager(QtWidgets.QDialog):
         self.setWindowTitle("交易风控")
 
         # Create widgets
-        self.active_combo = QtWidgets.QComboBox()
+        self.active_combo: QtWidgets.QComboBox = QtWidgets.QComboBox()
         self.active_combo.addItems(["停止", "启动"])
 
-        self.flow_limit_spin = RiskManagerSpinBox()
-        self.flow_clear_spin = RiskManagerSpinBox()
-        self.size_limit_spin = RiskManagerSpinBox()
-        self.trade_limit_spin = RiskManagerSpinBox()
-        self.active_limit_spin = RiskManagerSpinBox()
-        self.cancel_limit_spin = RiskManagerSpinBox()
+        self.flow_limit_spin: RiskManagerSpinBox = RiskManagerSpinBox()
+        self.flow_clear_spin: RiskManagerSpinBox = RiskManagerSpinBox()
+        self.size_limit_spin: RiskManagerSpinBox = RiskManagerSpinBox()
+        self.trade_limit_spin: RiskManagerSpinBox = RiskManagerSpinBox()
+        self.active_limit_spin: RiskManagerSpinBox = RiskManagerSpinBox()
+        self.cancel_limit_spin: RiskManagerSpinBox = RiskManagerSpinBox()
 
-        save_button = QtWidgets.QPushButton("保存")
+        save_button: QtWidgets.QPushButton = QtWidgets.QPushButton("保存")
         save_button.clicked.connect(self.save_setting)
 
         # Form layout
-        form = QtWidgets.QFormLayout()
+        form: QtWidgets.QFormLayout = QtWidgets.QFormLayout()
         form.addRow("风控运行状态", self.active_combo)
         form.addRow("委托流控上限（笔）", self.flow_limit_spin)
         form.addRow("委托流控清空（秒）", self.flow_clear_spin)
@@ -50,18 +50,18 @@ class RiskManager(QtWidgets.QDialog):
         self.setLayout(form)
 
         # Set Fix Size
-        hint = self.sizeHint()
+        hint: QtCore.QSize = self.sizeHint()
         self.setFixedSize(int(hint.width() * 1.2), hint.height())
 
     def save_setting(self) -> None:
         """"""
-        active_text = self.active_combo.currentText()
+        active_text: str = self.active_combo.currentText()
         if active_text == "启动":
-            active = True
+            active: bool = True
         else:
-            active = False
+            active: bool = False
 
-        setting = {
+        setting: dict = {
             "active": active,
             "order_flow_limit": self.flow_limit_spin.value(),
             "order_flow_clear": self.flow_clear_spin.value(),
@@ -78,7 +78,7 @@ class RiskManager(QtWidgets.QDialog):
 
     def update_setting(self) -> None:
         """"""
-        setting = self.rm_engine.get_setting()
+        setting: dict = self.rm_engine.get_setting()
         if setting["active"]:
             self.active_combo.setCurrentIndex(1)
         else:
