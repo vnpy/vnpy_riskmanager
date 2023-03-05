@@ -105,5 +105,5 @@ class RiskManagerSpinBox(QtWidgets.QSpinBox):
         super().__init__()
 
         self.setMinimum(0)
-        self.setMaximum(1000000)
+        self.setMaximum(1_000_000_000)
         self.setValue(value)
