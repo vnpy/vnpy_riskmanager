@@ -91,10 +91,10 @@ class RiskManager(QtWidgets.QDialog):
         self.active_limit_spin.setValue(setting["active_order_limit"])
         self.cancel_limit_spin.setValue(setting["order_cancel_limit"])
 
-    def exec_(self) -> None:
+    def exec(self) -> None:
         """"""
         self.update_setting()
-        super().exec_()
+        super().exec()
 
 
 class RiskManagerSpinBox(QtWidgets.QSpinBox):
