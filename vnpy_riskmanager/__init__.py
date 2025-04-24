@@ -21,11 +21,19 @@
 # SOFTWARE.
 
 from pathlib import Path
-from typing import Type
 
 from vnpy.trader.app import BaseApp
 
 from .engine import RiskEngine, APP_NAME
+
+
+__all__ = [
+    "RiskEngine",
+    "APP_NAME",
+    "RiskManagerApp",
+]
+
+__version__ = "1.1.0"
 
 
 class RiskManagerApp(BaseApp):
@@ -34,6 +42,6 @@ class RiskManagerApp(BaseApp):
     app_module: str = __module__
     app_path: Path = Path(__file__).parent
     display_name: str = "交易风控"
-    engine_class: Type[RiskEngine] = RiskEngine
+    engine_class: type[RiskEngine] = RiskEngine
     widget_name: str = "RiskManager"
     icon_name: str = str(app_path.joinpath("ui", "rm.ico"))
