@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Callable, Dict, Optional
+from collections.abc import Callable
 
 from vnpy.event import Event, EventEngine
 from vnpy.trader.object import OrderData, OrderRequest, LogData, TradeData
@@ -35,11 +35,11 @@ class RiskEngine(BaseEngine):
         self.trade_limit: int = 1000
 
         self.order_cancel_limit: int = 500
-        self.order_cancel_counts: Dict[str, int] = defaultdict(int)
+        self.order_cancel_counts: dict[str, int] = defaultdict(int)
 
         self.active_order_limit: int = 50
 
-        self.active_order_books: Dict[str, ActiveOrderBook] = {}
+        self.active_order_books: dict[str, ActiveOrderBook] = {}
 
         self.load_setting()
         self.register_event()
@@ -196,7 +196,7 @@ class RiskEngine(BaseEngine):
 
     def get_order_book(self, vt_symbol: str) -> "ActiveOrderBook":
         """"""
-        order_book: Optional[ActiveOrderBook] = self.active_order_books.get(vt_symbol, None)
+        order_book: ActiveOrderBook | None = self.active_order_books.get(vt_symbol, None)
         if not order_book:
             order_book = ActiveOrderBook(vt_symbol)
             self.active_order_books[vt_symbol] = order_book
@@ -210,8 +210,8 @@ class ActiveOrderBook:
         """"""
         self.vt_symbol: str = vt_symbol
 
-        self.bid_prices: Dict[str, float] = {}
-        self.ask_prices: Dict[str, float] = {}
+        self.bid_prices: dict[str, float] = {}
+        self.ask_prices: dict[str, float] = {}
 
     def update_order(self, order: OrderData) -> None:
         """更新委托数据"""
