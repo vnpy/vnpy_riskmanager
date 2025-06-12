@@ -59,7 +59,7 @@ class RiskManager(QtWidgets.QDialog):
         if active_text == "启动":
             active: bool = True
         else:
-            active: bool = False
+            active = False
 
         setting: dict = {
             "active": active,
