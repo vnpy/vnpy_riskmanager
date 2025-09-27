@@ -1,0 +1,11 @@
+{
+    "active_order_limit": 10,
+
+    "order_size_limit": 100,
+
+    "order_flow_limit": 10,
+    "order_flow_clear": 1,
+
+    "cancel_limit": 10,
+    "cancel_window": 1
+}
