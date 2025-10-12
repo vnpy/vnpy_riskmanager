@@ -33,19 +33,9 @@ keywords = ["quant", "quantitative", "investment", "trading", "algotrading"]
 "Forum" = "https://www.vnpy.com/forum"
 
 [build-system]
-requires = ["hatchling>=1.27.0"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "Cython>=3.0.0"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.version]
-path = "vnpy_riskmanager/__init__.py"
-pattern = "__version__ = ['\"](?P<version>[^'\"]+)['\"]"
-
-[tool.hatch.build.targets.wheel]
-packages = ["vnpy_riskmanager"]
-include-package-data = true
-
-[tool.hatch.build.targets.sdist]
-include = ["vnpy_riskmanager*"]
 
 [tool.ruff]
 target-version = "py310"

@@ -1,6 +1,3 @@
-import importlib
-import inspect
-import pkgutil
 from collections.abc import Callable
 
 from vnpy.event import Event, EventEngine
@@ -9,8 +6,11 @@ from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData,
 from vnpy.trader.engine import BaseEngine, MainEngine
 from vnpy.trader.utility import load_json
 
-from . import rules
 from .template import RuleTemplate
+from .rules.order_flow_rule import OrderFlowRule
+from .rules.order_size_rule import OrderSizeRule
+from .rules.active_order_rule import ActiveOrderRule
+from .rules.cancel_limit_rule import CancelLimitRule
 from .base import APP_NAME
 
 
@@ -37,17 +37,13 @@ class RiskEngine(BaseEngine):
         self.patch_functions()
 
     def load_rules(self) -> None:
-        """加载风控规则"""
-        rule_classes: list[type[RuleTemplate]] = []
-
-        package_path = rules.__path__
-        package_name = rules.__name__
-
-        for _, module_name, _ in pkgutil.iter_modules(package_path, prefix=f"{package_name}."):
-            module = importlib.import_module(module_name)
-            for _, obj in inspect.getmembers(module, inspect.isclass):
-                if issubclass(obj, RuleTemplate) and obj is not RuleTemplate:
-                    rule_classes.append(obj)
+        """加载风控规则（Cython 编译版本）"""
+        rule_classes: list[type[RuleTemplate]] = [
+            OrderFlowRule,
+            OrderSizeRule,
+            ActiveOrderRule,
+            CancelLimitRule,
+        ]
 
         for rule_class in rule_classes:
             rule: RuleTemplate = rule_class(self, self.setting)
