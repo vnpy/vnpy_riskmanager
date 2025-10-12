@@ -1,16 +1,21 @@
-from vnpy.event import EventEngine
-from vnpy.trader.engine import MainEngine
+from typing import TYPE_CHECKING
+
 from vnpy.trader.object import OrderRequest
 
 from ..template import RuleTemplate
+
+if TYPE_CHECKING:
+    from ..engine import RiskEngine
 
 
 class OrderSizeRule(RuleTemplate):
     """单笔委托数量上限"""
 
-    def __init__(self, main_engine: MainEngine, event_engine: EventEngine, setting: dict) -> None:
-        super().__init__(main_engine, event_engine, setting)
+    def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
+        super().__init__(risk_engine, setting)
 
+    def init_rule(self, setting: dict) -> None:
+        """初始化风控规则"""
         self.order_size_limit: int = setting.get("order_size_limit", 100)
 
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
