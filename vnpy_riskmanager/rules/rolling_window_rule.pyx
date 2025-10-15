@@ -1,7 +1,7 @@
 # cython: language_level=3
+import time
 from typing import TYPE_CHECKING
 from collections import deque
-from libc.time cimport time
 
 from ..template cimport RuleTemplate
 
@@ -12,11 +12,12 @@ if TYPE_CHECKING:
 cdef class RollingWindowRule(RuleTemplate):
     """滚动窗口委托/撤单笔数监控（Cython 优化版本）"""
 
-    cdef double rolling_window_seconds
-    cdef int rolling_order_limit
-    cdef int rolling_cancel_limit
-    cdef object order_timestamps  # deque[float]
-    cdef object cancel_timestamps  # deque[float]
+    # 属性声明（public 使其可从 Python 访问，确保 .py 和 .pyx 版本行为一致）
+    cdef public double rolling_window_seconds
+    cdef public int rolling_order_limit
+    cdef public int rolling_cancel_limit
+    cdef public object order_timestamps  # deque[float]
+    cdef public object cancel_timestamps  # deque[float]
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""
@@ -35,10 +36,10 @@ cdef class RollingWindowRule(RuleTemplate):
         cdef double current_time
         cdef int count
 
-        current_time = <double>time(NULL)
+        current_time = time.time()  # 使用 Python 的 time.time() 而非 C time()，以便在测试中可被 mock
 
         # 移除超出时间窗口的旧时间戳
-        while self.order_timestamps and current_time - <double>self.order_timestamps[0] > self.rolling_window_seconds:
+        while self.order_timestamps and current_time - self.order_timestamps[0] > self.rolling_window_seconds:
             self.order_timestamps.popleft()
 
         # 检查当前时间窗口内的委托笔数
@@ -59,10 +60,10 @@ cdef class RollingWindowRule(RuleTemplate):
         cdef double current_time
         cdef int count
 
-        current_time = <double>time(NULL)
+        current_time = time.time()  # 使用 Python 的 time.time() 而非 C time()，以便在测试中可被 mock
 
         # 移除超出时间窗口的旧时间戳
-        while self.cancel_timestamps and current_time - <double>self.cancel_timestamps[0] > self.rolling_window_seconds:
+        while self.cancel_timestamps and current_time - self.cancel_timestamps[0] > self.rolling_window_seconds:
             self.cancel_timestamps.popleft()
 
         # 检查当前时间窗口内的撤单笔数

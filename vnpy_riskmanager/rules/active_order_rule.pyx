@@ -10,7 +10,8 @@ if TYPE_CHECKING:
 cdef class ActiveOrderRule(RuleTemplate):
     """活动委托数量上限（Cython 优化版本）"""
 
-    cdef int active_order_limit
+    # 属性声明（public 使其可从 Python 访问，确保 .py 和 .pyx 版本行为一致）
+    cdef public int active_order_limit
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         super().__init__(risk_engine, setting)

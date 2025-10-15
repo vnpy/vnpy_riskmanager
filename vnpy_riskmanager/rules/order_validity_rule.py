@@ -25,7 +25,7 @@ class OrderValidityRule(RuleTemplate):
         """检查是否允许委托"""
         # 检查合约是否存在
         if self.check_contract_exists:
-            contract: ContractData | None = self.get_contract(req.vt_symbol)
+            contract: ContractData | None = self.risk_engine.get_contract(req.vt_symbol)
             if not contract:
                 self.write_log(f"委托失败：合约 {req.vt_symbol} 不存在")
                 return False

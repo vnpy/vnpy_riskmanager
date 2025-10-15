@@ -11,11 +11,12 @@ if TYPE_CHECKING:
 cdef class DailyLimitRule(RuleTemplate):
     """全天委托/撤单笔数监控（Cython 优化版本）"""
 
-    cdef int daily_order_limit
-    cdef int daily_cancel_limit
-    cdef int order_count
-    cdef int cancel_count
-    cdef str current_date
+    # 属性声明（public 使其可从 Python 访问，确保 .py 和 .pyx 版本行为一致）
+    cdef public int daily_order_limit
+    cdef public int daily_cancel_limit
+    cdef public int order_count
+    cdef public int cancel_count
+    cdef public str current_date
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""

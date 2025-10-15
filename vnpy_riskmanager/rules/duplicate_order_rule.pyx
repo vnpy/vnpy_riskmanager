@@ -1,7 +1,7 @@
 # cython: language_level=3
+import time
 from typing import TYPE_CHECKING
 from collections import defaultdict
-from libc.time cimport time
 
 from ..template cimport RuleTemplate
 
@@ -12,9 +12,10 @@ if TYPE_CHECKING:
 cdef class DuplicateOrderRule(RuleTemplate):
     """重复报单监控（Cython 优化版本）"""
 
-    cdef int max_duplicate_orders
-    cdef double duplicate_window
-    cdef object records  # defaultdict[str, list[float]]
+    # 属性声明（public 使其可从 Python 访问，确保 .py 和 .pyx 版本行为一致）
+    cdef public int max_duplicate_orders
+    cdef public double duplicate_window
+    cdef public object records  # defaultdict[str, list[float]]
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""
@@ -39,12 +40,12 @@ cdef class DuplicateOrderRule(RuleTemplate):
             f"{req.price}|{req.volume}"
         )
 
-        current_time = <double>time(NULL)
+        current_time = time.time()  # 使用 Python 的 time.time() 而非 C time()，以便在测试中可被 mock
         timestamps = self.records[order_key]
 
         # 移除超出时间窗口的旧记录
         timestamps[:] = [
-            t for t in timestamps if current_time - <double>t <= self.duplicate_window
+            t for t in timestamps if current_time - t <= self.duplicate_window
         ]
 
         # 检查重复次数

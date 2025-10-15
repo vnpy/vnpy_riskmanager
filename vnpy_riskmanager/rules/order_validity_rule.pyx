@@ -10,10 +10,11 @@ if TYPE_CHECKING:
 cdef class OrderValidityRule(RuleTemplate):
     """委托指令合法性监控（Cython 优化版本）"""
 
-    cdef bint check_contract_exists
-    cdef bint check_price_tick
-    cdef bint check_volume_limit
-    cdef int max_order_volume
+    # 属性声明（public 使其可从 Python 访问，确保 .py 和 .pyx 版本行为一致）
+    cdef public bint check_contract_exists
+    cdef public bint check_price_tick
+    cdef public bint check_volume_limit
+    cdef public int max_order_volume
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         super().__init__(risk_engine, setting)
@@ -33,7 +34,8 @@ cdef class OrderValidityRule(RuleTemplate):
 
         # 检查合约是否存在
         if self.check_contract_exists:
-            contract = self.get_contract(req.vt_symbol)
+            # 直接调用 risk_engine.get_contract() 查询合约信息（不通过 template 包装）
+            contract = self.risk_engine.get_contract(req.vt_symbol)
             if not contract:
                 self.write_log(f"委托失败：合约 {req.vt_symbol} 不存在")
                 return False
