@@ -31,6 +31,7 @@ def mock_risk_engine(mock_main_engine: Mock, mock_event_engine: Mock) -> Mock:
     risk_engine.event_engine = mock_event_engine
     risk_engine.write_log = Mock()
     risk_engine.get_all_active_orders = Mock(return_value=[])
+    risk_engine.get_contract = Mock(return_value=None)
     return risk_engine
 
 

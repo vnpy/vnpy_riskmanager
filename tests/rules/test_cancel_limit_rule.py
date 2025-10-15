@@ -224,7 +224,7 @@ class TestCancelLimitRule:
         with patch("time.time") as mock_time:
             # 在同一时刻连续撤单
             mock_time.return_value = 1000.0
-            for i in range(10):
+            for _ in range(10):
                 result: bool = rule.check_cancel_allowed(sample_cancel_request)
                 assert result is True
 

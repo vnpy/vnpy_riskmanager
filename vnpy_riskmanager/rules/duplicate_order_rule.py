@@ -19,7 +19,7 @@ class DuplicateOrderRule(RuleTemplate):
 
     def init_rule(self, setting: dict) -> None:
         """初始化风控规则"""
-        self.duplicate_limit: int = setting.get("duplicate_limit", 3)
+        self.max_duplicate_orders: int = setting.get("max_duplicate_orders", 3)
         self.duplicate_window: float = setting.get("duplicate_window", 1.0)
         self.records: dict[str, list[float]] = defaultdict(list)
 
@@ -40,7 +40,7 @@ class DuplicateOrderRule(RuleTemplate):
         ]
 
         # 检查重复次数
-        if len(timestamps) >= self.duplicate_limit:
+        if len(timestamps) >= self.max_duplicate_orders:
             self.write_log(
                 f"重复报单：{self.format_req(req)}，"
                 f"在 {self.duplicate_window} 秒内已出现 {len(timestamps)} 次"
@@ -50,4 +50,3 @@ class DuplicateOrderRule(RuleTemplate):
         # 记录本次委托时间
         timestamps.append(current_time)
         return True
-

@@ -14,7 +14,7 @@
     "check_volume_limit": false,
     "max_order_volume": 1000,
 
-    "duplicate_limit": 3,
+    "max_duplicate_orders": 3,
     "duplicate_window": 1.0,
 
     "daily_order_limit": 1000,
