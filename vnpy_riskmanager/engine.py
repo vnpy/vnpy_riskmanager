@@ -2,7 +2,7 @@ from collections.abc import Callable
 
 from vnpy.event import Event, EventEngine
 from vnpy.trader.event import EVENT_TICK, EVENT_ORDER, EVENT_TRADE, EVENT_TIMER
-from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData
+from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData, ContractData
 from vnpy.trader.engine import BaseEngine, MainEngine
 from vnpy.trader.utility import load_json
 
@@ -11,6 +11,10 @@ from .rules.order_flow_rule import OrderFlowRule
 from .rules.order_size_rule import OrderSizeRule
 from .rules.active_order_rule import ActiveOrderRule
 from .rules.cancel_limit_rule import CancelLimitRule
+from .rules.order_validity_rule import OrderValidityRule
+from .rules.duplicate_order_rule import DuplicateOrderRule
+from .rules.daily_limit_rule import DailyLimitRule
+from .rules.rolling_window_rule import RollingWindowRule
 from .base import APP_NAME
 
 
@@ -37,12 +41,16 @@ class RiskEngine(BaseEngine):
         self.patch_functions()
 
     def load_rules(self) -> None:
-        """加载风控规则（Cython 编译版本）"""
+        """加载风控规则"""
         rule_classes: list[type[RuleTemplate]] = [
             OrderFlowRule,
             OrderSizeRule,
             ActiveOrderRule,
             CancelLimitRule,
+            OrderValidityRule,
+            DuplicateOrderRule,
+            DailyLimitRule,
+            RollingWindowRule,
         ]
 
         for rule_class in rule_classes:
@@ -142,3 +150,7 @@ class RiskEngine(BaseEngine):
     def get_all_active_orders(self) -> list[OrderData]:
         """查询所有活动委托（供规则调用）"""
         return self.main_engine.get_all_active_orders()     # type: ignore
+
+    def get_contract(self, vt_symbol: str) -> ContractData | None:
+        """查询合约信息（供规则调用）"""
+        return self.main_engine.get_contract(vt_symbol)
