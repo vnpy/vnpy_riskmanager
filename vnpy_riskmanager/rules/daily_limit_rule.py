@@ -58,4 +58,3 @@ class DailyLimitRule(RuleTemplate):
 
         self.cancel_count += 1
         return True
-

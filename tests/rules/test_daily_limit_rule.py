@@ -1,5 +1,4 @@
 """DailyLimitRule 测试用例"""
-from typing import Callable
 from unittest.mock import Mock, patch
 from datetime import datetime
 

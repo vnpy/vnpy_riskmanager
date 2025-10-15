@@ -65,4 +65,3 @@ class RollingWindowRule(RuleTemplate):
         # 记录本次撤单时间戳
         self.cancel_timestamps.append(current_time)
         return True
-

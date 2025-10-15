@@ -1,5 +1,4 @@
 """RollingWindowRule 测试用例"""
-from typing import Callable
 from unittest.mock import Mock, patch
 
 from vnpy.trader.object import OrderRequest, CancelRequest

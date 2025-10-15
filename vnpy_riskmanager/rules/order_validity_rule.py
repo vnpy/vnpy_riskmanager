@@ -50,4 +50,3 @@ class OrderValidityRule(RuleTemplate):
                 return False
 
         return True
-

@@ -1,9 +1,7 @@
 """CancelLimitRule 测试用例"""
-import time
-from typing import Callable
+from collections.abc import Callable
 from unittest.mock import Mock, patch
 
-import pytest
 
 from vnpy.trader.object import CancelRequest
 from vnpy.trader.constant import Exchange

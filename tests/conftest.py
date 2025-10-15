@@ -1,6 +1,6 @@
 """测试共享 fixtures"""
-from typing import Callable
-from unittest.mock import Mock, MagicMock
+from collections.abc import Callable
+from unittest.mock import Mock
 
 import pytest
 

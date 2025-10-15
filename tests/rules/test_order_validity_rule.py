@@ -1,9 +1,8 @@
 """OrderValidityRule 测试用例"""
-from typing import Callable
 from unittest.mock import Mock
 
 from vnpy.trader.object import OrderRequest, ContractData
-from vnpy.trader.constant import Direction, Offset, OrderType, Exchange, Product
+from vnpy.trader.constant import Exchange, Product
 
 from vnpy_riskmanager.rules.order_validity_rule import OrderValidityRule
 
