@@ -7,5 +7,20 @@
     "order_flow_clear": 1,
 
     "cancel_limit": 10,
-    "cancel_window": 1
+    "cancel_window": 1,
+
+    "check_contract_exists": true,
+    "check_price_tick": true,
+    "check_volume_limit": false,
+    "max_order_volume": 1000,
+
+    "max_duplicate_orders": 3,
+    "duplicate_window": 1.0,
+
+    "daily_order_limit": 1000,
+    "daily_cancel_limit": 500,
+
+    "rolling_window_seconds": 1.0,
+    "rolling_order_limit": 20,
+    "rolling_cancel_limit": 20
 }

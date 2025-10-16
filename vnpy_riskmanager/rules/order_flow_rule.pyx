@@ -10,10 +10,11 @@ if TYPE_CHECKING:
 cdef class OrderFlowRule(RuleTemplate):
     """委托流速控制（Cython 优化版本）"""
 
-    cdef int order_flow_count
-    cdef int order_flow_limit
-    cdef int order_flow_clear
-    cdef int order_flow_timer
+    # 属性声明（public 使其可从 Python 访问，确保 .py 和 .pyx 版本行为一致）
+    cdef public int order_flow_count
+    cdef public int order_flow_limit
+    cdef public int order_flow_clear
+    cdef public int order_flow_timer
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         super().__init__(risk_engine, setting)

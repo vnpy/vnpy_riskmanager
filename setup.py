@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 from Cython.Build import cythonize
 from setuptools.extension import Extension
-import os
 
 
 def get_version():
@@ -34,6 +33,22 @@ extensions = [
     Extension(
         "vnpy_riskmanager.rules.cancel_limit_rule",
         ["vnpy_riskmanager/rules/cancel_limit_rule.pyx"],
+    ),
+    Extension(
+        "vnpy_riskmanager.rules.order_validity_rule",
+        ["vnpy_riskmanager/rules/order_validity_rule.pyx"],
+    ),
+    Extension(
+        "vnpy_riskmanager.rules.duplicate_order_rule",
+        ["vnpy_riskmanager/rules/duplicate_order_rule.pyx"],
+    ),
+    Extension(
+        "vnpy_riskmanager.rules.daily_limit_rule",
+        ["vnpy_riskmanager/rules/daily_limit_rule.pyx"],
+    ),
+    Extension(
+        "vnpy_riskmanager.rules.rolling_window_rule",
+        ["vnpy_riskmanager/rules/rolling_window_rule.pyx"],
     ),
 ]
 

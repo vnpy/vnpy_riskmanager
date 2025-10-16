@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData
+from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData, ContractData
 
 if TYPE_CHECKING:
     from .engine import RiskEngine
@@ -53,3 +53,7 @@ class RuleTemplate:
     def get_all_active_orders(self) -> list[OrderData]:
         """查询所有活动委托"""
         return self.risk_engine.get_all_active_orders()
+
+    def get_contract(self, vt_symbol: str) -> ContractData | None:
+        """查询合约信息"""
+        return self.risk_engine.get_contract(vt_symbol)

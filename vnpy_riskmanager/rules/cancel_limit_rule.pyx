@@ -1,7 +1,7 @@
 # cython: language_level=3
+import time
 from typing import TYPE_CHECKING
 from collections import deque, defaultdict
-from libc.time cimport time, time_t
 
 from ..template cimport RuleTemplate
 
@@ -12,9 +12,10 @@ if TYPE_CHECKING:
 cdef class CancelLimitRule(RuleTemplate):
     """撤单频率控制（Cython 优化版本，使用 C 时间函数）"""
 
-    cdef int cancel_limit
-    cdef int cancel_window
-    cdef object records  # 改为 object 类型以支持 defaultdict
+    # 属性声明（public 使其可从 Python 访问，确保 .py 和 .pyx 版本行为一致）
+    cdef public int cancel_limit
+    cdef public int cancel_window
+    cdef public object records  # 改为 object 类型以支持 defaultdict
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""
@@ -33,7 +34,7 @@ cdef class CancelLimitRule(RuleTemplate):
         cdef int count
 
         timestamps = self.records[req.vt_symbol]
-        current_t = <double>time(NULL)  # 使用 C 标准库时间函数
+        current_t = time.time()  # 使用 Python 的 time.time() 而非 C time()，以便在测试中可被 mock
 
         # 移除超出时间窗口的旧时间戳
         while timestamps and current_t - <double>timestamps[0] > self.cancel_window:

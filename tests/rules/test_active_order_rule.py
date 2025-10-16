@@ -1,8 +1,7 @@
 """ActiveOrderRule 测试用例"""
-from typing import Callable
+from collections.abc import Callable
 from unittest.mock import Mock
 
-import pytest
 
 from vnpy.trader.object import OrderRequest, OrderData
 
