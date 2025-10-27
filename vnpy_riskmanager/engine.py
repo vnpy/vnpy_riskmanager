@@ -23,7 +23,7 @@ class RiskEngine(BaseEngine):
         """构造函数"""
         super().__init__(main_engine, event_engine, APP_NAME)
 
-        self.rules: list[RuleTemplate] = []
+        self.rules: dict[str, RuleTemplate] = {}
         self.setting: dict = load_json(self.setting_filename)
 
         # 缓存：记录哪些规则需要哪些回调
@@ -51,7 +51,7 @@ class RiskEngine(BaseEngine):
 
         for rule_class in rule_classes:
             rule: RuleTemplate = rule_class(self, self.setting)
-            self.rules.append(rule)
+            self.rules[rule.__class__.__name__] = rule
 
     def patch_functions(self) -> None:
         """动态替换主引擎函数"""
@@ -64,7 +64,7 @@ class RiskEngine(BaseEngine):
     def register_rule_events(self) -> None:
         """检测规则需要的事件类型并注册"""
         # 遍历所有规则，检测并缓存需要回调的规则
-        for rule in self.rules:
+        for rule in self.rules.values():
             if self._needs_callback(rule, "on_tick"):
                 self.tick_rules.append(rule)
             if self._needs_callback(rule, "on_order"):
@@ -131,14 +131,14 @@ class RiskEngine(BaseEngine):
 
     def check_send_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许发单"""
-        for rule in self.rules:
+        for rule in self.rules.values():
             if not rule.check_allowed(req, gateway_name):
                 return False
         return True
 
     def check_cancel_allowed(self, req: CancelRequest) -> bool:
         """检查是否允许撤单"""
-        for rule in self.rules:
+        for rule in self.rules.values():
             if not rule.check_cancel_allowed(req):
                 return False
         return True
@@ -150,3 +150,29 @@ class RiskEngine(BaseEngine):
     def get_contract(self, vt_symbol: str) -> ContractData | None:
         """查询合约信息（供规则调用）"""
         return self.main_engine.get_contract(vt_symbol)
+
+    def get_all_rule_names(self) -> list[str]:
+        """获取所有规则类名"""
+        return list(self.rules.keys())
+
+    def get_rule_parameters(self, rule_name: str) -> dict:
+        """获取指定规则的参数"""
+        if rule_name not in self.rules:
+            return {}
+
+        parameters: dict = {}
+        rule: RuleTemplate = self.rules[rule_name]
+        for name in rule.parameters:
+            parameters[name] = getattr(rule, name)
+        return parameters
+
+    def get_rule_variables(self, rule_name: str) -> dict:
+        """获取指定规则的监控变量"""
+        if rule_name not in self.rules:
+            return {}
+
+        variables: dict = {}
+        rule: RuleTemplate = self.rules[rule_name]
+        for name in rule.variables:
+            variables[name] = getattr(rule, name)
+        return variables

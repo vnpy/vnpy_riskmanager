@@ -9,6 +9,9 @@ if TYPE_CHECKING:
 class RuleTemplate:
     """风控规则模板"""
 
+    parameters: list[str] = []
+    variables: list[str] = []
+
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""
         self.risk_engine: RiskEngine = risk_engine
@@ -24,7 +27,10 @@ class RuleTemplate:
 
     def init_rule(self, setting: dict) -> None:
         """初始化风控规则"""
-        pass
+        for name in self.parameters:
+            if name in setting:
+                value = setting[name]
+                setattr(self, name, value)
 
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许委托"""
