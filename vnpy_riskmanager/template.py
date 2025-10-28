@@ -73,10 +73,6 @@ class RuleTemplate:
         """定时推送（每秒触发）"""
         pass
 
-    def get_all_active_orders(self) -> list[OrderData]:
-        """查询所有活动委托"""
-        return self.risk_engine.get_all_active_orders()
-
     def get_contract(self, vt_symbol: str) -> ContractData | None:
         """查询合约信息"""
         return self.risk_engine.get_contract(vt_symbol)

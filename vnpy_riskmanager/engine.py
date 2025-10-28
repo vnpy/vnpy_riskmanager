@@ -171,10 +171,6 @@ class RiskEngine(BaseEngine):
         if winsound:
             winsound.PlaySound("SystemExclamation", winsound.SND_ALIAS | winsound.SND_ASYNC)
 
-    def get_all_active_orders(self) -> list[OrderData]:
-        """查询所有活动委托（供规则调用）"""
-        return self.main_engine.get_all_active_orders()     # type: ignore
-
     def get_contract(self, vt_symbol: str) -> ContractData | None:
         """查询合约信息（供规则调用）"""
         return self.main_engine.get_contract(vt_symbol)
