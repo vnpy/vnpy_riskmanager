@@ -13,19 +13,24 @@ if TYPE_CHECKING:
 class CancelLimitRule(RuleTemplate):
     """撤单频率控制"""
 
+    name: str = "撤单频率风控"
+
+    parameters: dict[str, str] = {
+        "cancel_limit": "撤单次数上限",
+        "cancel_window": "统计时间窗口"
+    }
+
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""
         super().__init__(risk_engine, setting)
 
-    def init_rule(self, setting: dict) -> None:
-        """初始化风控规则"""
-        self.cancel_limit: int = setting.get("cancel_limit", 10)
-        self.cancel_window: int = setting.get("cancel_window", 1)
-        self.records: dict[str, deque] = defaultdict(deque)
+        self.cancel_limit: int = 10
+        self.cancel_window: int = 1
+        self._records: dict[str, deque] = defaultdict(deque)
 
     def check_cancel_allowed(self, req: CancelRequest) -> bool:
         """检查是否允许撤单"""
-        timestamps: deque = self.records[req.vt_symbol]
+        timestamps: deque = self._records[req.vt_symbol]
         current_t: float = time.time()
 
         # 移除超出时间窗口的旧时间戳

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData, ContractData
 
@@ -9,13 +9,20 @@ if TYPE_CHECKING:
 class RuleTemplate:
     """风控规则模板"""
 
-    parameters: list[str] = []
-    variables: list[str] = []
+    # 风控规则名称
+    name: str = ""
+
+    # 参数字段和名称
+    parameters: dict[str, str] = {}
+
+    # 变量字段和名称
+    variables: dict[str, str] = {}
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""
         self.risk_engine: RiskEngine = risk_engine
-        self.init_rule(setting)
+
+        self.update_setting(setting)
 
     def write_log(self, msg: str) -> None:
         """输出风控日志"""
@@ -25,9 +32,9 @@ class RuleTemplate:
         """将委托请求转为字符串"""
         return f"{req.vt_symbol}|{req.type.value}|{req.direction.value}{req.offset.value}|{req.volume}@{req.price}|{req.reference}"
 
-    def init_rule(self, setting: dict) -> None:
-        """初始化风控规则"""
-        for name in self.parameters:
+    def update_setting(self, setting: dict) -> None:
+        """更新风控规则参数"""
+        for name in self.parameters.keys():
             if name in setting:
                 value = setting[name]
                 setattr(self, name, value)
@@ -63,3 +70,26 @@ class RuleTemplate:
     def get_contract(self, vt_symbol: str) -> ContractData | None:
         """查询合约信息"""
         return self.risk_engine.get_contract(vt_symbol)
+
+    def put_event(self) -> None:
+        """推送数据更新事件"""
+        self.risk_engine.put_rule_event(self)
+
+    def get_data(self) -> dict[str, Any]:
+        """获取数据"""
+        parameters: dict[str, Any] = {}
+        for name in self.parameters.keys():
+            value: Any = getattr(self, name)
+            parameters[name] = value
+
+        variables: dict[str, Any] = {}
+        for name in self.variables.keys():
+            value: Any = getattr(self, name)
+            variables[name] = value
+
+        data: dict[str, Any] = {
+            "name": self.name,
+            "parameters": parameters,
+            "variables": variables
+        }
+        return data

@@ -2,16 +2,17 @@ import importlib
 import inspect
 import pkgutil
 from collections.abc import Callable
+from typing import Any
 
 from vnpy.event import Event, EventEngine
 from vnpy.trader.event import EVENT_TICK, EVENT_ORDER, EVENT_TRADE, EVENT_TIMER
 from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData, ContractData
 from vnpy.trader.engine import BaseEngine, MainEngine
-from vnpy.trader.utility import load_json
+from vnpy.trader.utility import load_json, save_json
 
 from . import rules
 from .template import RuleTemplate
-from .base import APP_NAME
+from .base import APP_NAME, EVENT_RISK_RULE
 
 
 class RiskEngine(BaseEngine):
@@ -25,6 +26,8 @@ class RiskEngine(BaseEngine):
 
         self.rules: dict[str, RuleTemplate] = {}
         self.setting: dict = load_json(self.setting_filename)
+
+        self.field_name_map: dict = {}      # 规则字段名称映射
 
         # 缓存：记录哪些规则需要哪些回调
         self.tick_rules: list[RuleTemplate] = []
@@ -51,7 +54,11 @@ class RiskEngine(BaseEngine):
 
         for rule_class in rule_classes:
             rule: RuleTemplate = rule_class(self, self.setting)
-            self.rules[rule.__class__.__name__] = rule
+            self.rules[rule.name] = rule
+
+            # 更新字段名称映射
+            self.field_name_map.update(rule.parameters)
+            self.field_name_map.update(rule.variables)
 
     def patch_functions(self) -> None:
         """动态替换主引擎函数"""
@@ -151,28 +158,33 @@ class RiskEngine(BaseEngine):
         """查询合约信息（供规则调用）"""
         return self.main_engine.get_contract(vt_symbol)
 
+    def put_rule_event(self, rule: RuleTemplate) -> None:
+        """推送规则事件"""
+        data: dict[str, Any] = rule.get_data()
+        event: Event = Event(EVENT_RISK_RULE, data)
+        self.event_engine.put(event)
+
+    def update_rule_parameters(self, rule_name: str, parameters: dict) -> None:
+        """更新指定规则的参数"""
+        self.setting.update(parameters)
+
+        # 更新到规则对象
+        rule: RuleTemplate = self.rules[rule_name]
+        rule.update_setting(self.setting)
+        rule.put_event()
+
+        # 保存配置到文件
+        save_json(self.setting_filename, self.setting)
+
     def get_all_rule_names(self) -> list[str]:
         """获取所有规则类名"""
         return list(self.rules.keys())
 
-    def get_rule_parameters(self, rule_name: str) -> dict:
-        """获取指定规则的参数"""
-        if rule_name not in self.rules:
-            return {}
-
-        parameters: dict = {}
+    def get_rule_data(self, rule_name: str) -> dict[str, Any]:
+        """获取指定规则的数据"""
         rule: RuleTemplate = self.rules[rule_name]
-        for name in rule.parameters:
-            parameters[name] = getattr(rule, name)
-        return parameters
+        return rule.get_data()
 
-    def get_rule_variables(self, rule_name: str) -> dict:
-        """获取指定规则的监控变量"""
-        if rule_name not in self.rules:
-            return {}
-
-        variables: dict = {}
-        rule: RuleTemplate = self.rules[rule_name]
-        for name in rule.variables:
-            variables[name] = getattr(rule, name)
-        return variables
+    def get_field_name(self, field: str) -> str:
+        """获取字段名称"""
+        return self.field_name_map.get(field, field)
