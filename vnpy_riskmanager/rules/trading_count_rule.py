@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from vnpy.trader.object import OrderRequest, OrderData
-from vnpy.trader.constant import OrderStatus
+from vnpy.trader.constant import Status
 
 from ..template import RuleTemplate
 
@@ -43,11 +43,11 @@ class TradingCountRule(RuleTemplate):
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许委托"""
         if self.total_order_count >= self.total_order_limit:
-            self.write_log(f"全天委托笔数{self.total_order_count}达到上限{self.total_order_limit}")
+            self.write_log(f"全天委托笔数{self.total_order_count}达到上限{self.total_order_limit}：{req}")
             return False
 
         if self.total_cancel_count >= self.total_cancel_limit:
-            self.write_log(f"全天撤单笔数{self.total_cancel_count}达到上限{self.total_cancel_limit}")
+            self.write_log(f"全天撤单笔数{self.total_cancel_count}达到上限{self.total_cancel_limit}：{req}")
             return False
 
         return True
@@ -62,7 +62,7 @@ class TradingCountRule(RuleTemplate):
 
             self.put_event()
         elif (
-            order.status == OrderStatus.CANCELLED
+            order.status == Status.CANCELLED
             and order.vt_orderid not in self.cancel_orderids
         ):
             self.cancel_orderids.add(order.vt_orderid)

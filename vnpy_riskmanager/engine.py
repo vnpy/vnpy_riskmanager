@@ -5,10 +5,24 @@ from collections.abc import Callable
 from typing import Any
 
 from vnpy.event import Event, EventEngine
-from vnpy.trader.event import EVENT_TICK, EVENT_ORDER, EVENT_TRADE, EVENT_TIMER
-from vnpy.trader.object import OrderRequest, TickData, OrderData, TradeData, ContractData
+from vnpy.trader.event import (
+    EVENT_TICK,
+    EVENT_ORDER,
+    EVENT_TRADE,
+    EVENT_TIMER,
+    EVENT_LOG
+)
+from vnpy.trader.object import (
+    OrderRequest,
+    TickData,
+    OrderData,
+    TradeData,
+    ContractData,
+    LogData
+)
 from vnpy.trader.engine import BaseEngine, MainEngine
 from vnpy.trader.utility import load_json, save_json
+from vnpy.trader.logger import ERROR
 
 from . import rules
 from .template import RuleTemplate
@@ -53,7 +67,7 @@ class RiskEngine(BaseEngine):
                     rule_classes.append(obj)
 
         for rule_class in rule_classes:
-            rule_setting: dict = self.setting.get(rule_class.__name__, {})
+            rule_setting: dict = self.setting.get(rule_class.name, {})
             rule: RuleTemplate = rule_class(self, rule_setting)
             self.rules[rule.name] = rule
 
@@ -131,10 +145,19 @@ class RiskEngine(BaseEngine):
         for rule in self.rules.values():
             if (
                 rule.active                                         # 启用规则
-                and not rule.check_allowed(req, gateway_name)       # 
+                and not rule.check_allowed(req, gateway_name)       # 检查规则是否允许
             ):
                 return False
         return True
+
+    def write_log(self, msg: str) -> None:
+        """输出风控日志"""
+        log: LogData = LogData(
+            msg="委托被拦截，" + msg,
+            level=ERROR,
+            gateway_name=APP_NAME,
+        )
+        self.event_engine.put(Event(EVENT_LOG, log))
 
     def get_all_active_orders(self) -> list[OrderData]:
         """查询所有活动委托（供规则调用）"""
@@ -173,4 +196,5 @@ class RiskEngine(BaseEngine):
 
     def get_field_name(self, field: str) -> str:
         """获取字段名称"""
-        return self.field_name_map.get(field, field)
+        name: str = self.field_name_map.get(field, field)
+        return name

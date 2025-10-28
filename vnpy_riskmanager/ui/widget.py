@@ -54,10 +54,11 @@ class RuleWidget(QtWidgets.QGroupBox):
         variable_root = QtWidgets.QTreeWidgetItem(self.tree, ["变量"])
         variables: dict = data["variables"]
         for field, value in variables.items():
-            name: str = self.risk_engine.get_field_name(field)
+            name = self.risk_engine.get_field_name(field)
 
             if isinstance(value, dict):
                 item = QtWidgets.QTreeWidgetItem(variable_root, ["", name])
+                self.items[field] = item
 
                 for k, v in value.items():
                     sub_item: QtWidgets.QTreeWidgetItem = QtWidgets.QTreeWidgetItem(item, ["", "", k, str(v)])
@@ -84,7 +85,7 @@ class RuleWidget(QtWidgets.QGroupBox):
 
         for field, value in variables.items():
             if isinstance(value, dict):
-                item: QtWidgets.QTreeWidgetItem = self.items[field]
+                item = self.items[field]
 
                 for k, v in value.items():
                     sub_item: QtWidgets.QTreeWidgetItem = self.items.get(f"{field}.{k}")
@@ -94,7 +95,7 @@ class RuleWidget(QtWidgets.QGroupBox):
                         sub_item = QtWidgets.QTreeWidgetItem(item, ["", "", k, str(v)])
                         self.items[f"{field}.{k}"] = sub_item
             else:
-                item: QtWidgets.QTreeWidgetItem = self.items[field]
+                item = self.items[field]
                 item.setText(2, str(value))
 
         self.tree.expandAll()
@@ -140,7 +141,7 @@ class RuleEditor(QtWidgets.QDialog):
 
             # 布尔值使用下拉框
             if value_type is bool:
-                widget: QtWidgets.QComboBox = QtWidgets.QComboBox()
+                widget: QtWidgets.QWidget = QtWidgets.QComboBox()
                 widget.addItems(["True", "False"])
                 if value:
                     widget.setCurrentText("True")
@@ -148,18 +149,18 @@ class RuleEditor(QtWidgets.QDialog):
                     widget.setCurrentText("False")
             # 整数使用SpinBox
             elif value_type is int:
-                widget: QtWidgets.QSpinBox = QtWidgets.QSpinBox()
+                widget = QtWidgets.QSpinBox()
                 widget.setRange(-1_000_000_000, 1_000_000_000)
                 widget.setValue(value)
             # 浮点数使用DoubleSpinBox
             elif value_type is float:
-                widget: QtWidgets.QDoubleSpinBox = QtWidgets.QDoubleSpinBox()
+                widget = QtWidgets.QDoubleSpinBox()
                 widget.setDecimals(6)
                 widget.setRange(-1_000_000_000, 1_000_000_000)
                 widget.setValue(value)
             # 其他类型使用LineEdit
             else:
-                widget: QtWidgets.QLineEdit = QtWidgets.QLineEdit(str(value))
+                widget = QtWidgets.QLineEdit(str(value))
 
             form.addRow(name, widget)
             self.widgets[field] = widget
@@ -186,13 +187,13 @@ class RuleEditor(QtWidgets.QDialog):
 
         for field, widget in self.widgets.items():
             if isinstance(widget, QtWidgets.QComboBox):
-                value: bool = (widget.currentText() == "True")
+                value: Any = (widget.currentText() == "True")
             elif isinstance(widget, QtWidgets.QSpinBox):
-                value: int = widget.value()
+                value = widget.value()
             elif isinstance(widget, QtWidgets.QDoubleSpinBox):
-                value: float = widget.value()
+                value = widget.value()
             else:
-                value: str = widget.text()
+                value = widget.text()
             rule_setting[field] = value
 
         return rule_setting
@@ -255,6 +256,6 @@ class RiskManager(QtWidgets.QWidget):
         data: dict = event.data
 
         rule_name: str = data["name"]
-        rule_widget: RuleWidget = self.rule_widgets.get(rule_name)
+        rule_widget: RuleWidget | None = self.rule_widgets.get(rule_name)
         if rule_widget:
             rule_widget.update_data(data)

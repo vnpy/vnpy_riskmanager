@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
-from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData, ContractData
+from vnpy.trader.object import OrderRequest, TickData, OrderData, TradeData, ContractData
 
 if TYPE_CHECKING:
     from .engine import RiskEngine
@@ -32,19 +32,15 @@ class RuleTemplate:
         parameters.update(self.parameters)
         self.parameters = parameters
 
-        # 更新规则参数
-        self.update_setting(setting)
-
         # 初始化规则
         self.on_init()
+
+        # 更新规则参数
+        self.update_setting(setting)
 
     def write_log(self, msg: str) -> None:
         """输出风控日志"""
         self.risk_engine.write_log(msg)
-
-    def format_req(self, req: OrderRequest) -> str:
-        """将委托请求转为字符串"""
-        return f"{req.vt_symbol}|{req.type.value}|{req.direction.value}{req.offset.value}|{req.volume}@{req.price}|{req.reference}"
 
     def update_setting(self, rule_setting: dict) -> None:
         """更新风控规则参数"""
@@ -98,11 +94,12 @@ class RuleTemplate:
 
         variables: dict[str, Any] = {}
         for name in self.variables.keys():
-            value: Any = getattr(self, name)
+            value = getattr(self, name)
             variables[name] = value
 
         data: dict[str, Any] = {
             "name": self.name,
+            "class_name": self.__class__.__name__,
             "parameters": parameters,
             "variables": variables
         }

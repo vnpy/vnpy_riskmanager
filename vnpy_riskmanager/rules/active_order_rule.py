@@ -30,7 +30,7 @@ class ActiveOrderRule(RuleTemplate):
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许委托"""
         if self.active_order_count >= self.active_order_limit:
-            self.write_log(f"活动委托数量{self.active_order_count}达到上限{self.active_order_limit}")
+            self.write_log(f"活动委托数量{self.active_order_count}达到上限{self.active_order_limit}：{req}")
             return False
 
         return True
