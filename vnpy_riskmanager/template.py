@@ -20,9 +20,23 @@ class RuleTemplate:
 
     def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
         """构造函数"""
+        # 绑定风控引擎对象
         self.risk_engine: RiskEngine = risk_engine
 
+        # 添加启用状态参数
+        self.active: bool = True
+
+        parameters: dict[str, str] = {
+            "active": "启用规则"
+        }
+        parameters.update(self.parameters)
+        self.parameters = parameters
+
+        # 更新规则参数
         self.update_setting(setting)
+
+        # 初始化规则
+        self.on_init()
 
     def write_log(self, msg: str) -> None:
         """输出风控日志"""
@@ -32,20 +46,20 @@ class RuleTemplate:
         """将委托请求转为字符串"""
         return f"{req.vt_symbol}|{req.type.value}|{req.direction.value}{req.offset.value}|{req.volume}@{req.price}|{req.reference}"
 
-    def update_setting(self, setting: dict) -> None:
+    def update_setting(self, rule_setting: dict) -> None:
         """更新风控规则参数"""
         for name in self.parameters.keys():
-            if name in setting:
-                value = setting[name]
+            if name in rule_setting:
+                value = rule_setting[name]
                 setattr(self, name, value)
 
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许委托"""
         return True
 
-    def check_cancel_allowed(self, req: CancelRequest) -> bool:
-        """检查是否允许撤单"""
-        return True
+    def on_init(self) -> None:
+        """初始化"""
+        pass
 
     def on_tick(self, tick: TickData) -> None:
         """行情推送"""

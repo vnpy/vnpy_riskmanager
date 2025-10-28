@@ -109,8 +109,8 @@ class RuleWidget(QtWidgets.QGroupBox):
         result: int = dialog.exec()
 
         if result == QtWidgets.QDialog.DialogCode.Accepted:
-            parameters: dict = dialog.get_parameters()
-            self.risk_engine.update_rule_setting(self.rule_name, parameters)
+            rule_setting: dict = dialog.get_setting()
+            self.risk_engine.update_rule_setting(self.rule_name, rule_setting)
 
 
 class RuleEditor(QtWidgets.QDialog):
@@ -180,9 +180,9 @@ class RuleEditor(QtWidgets.QDialog):
         vbox.addLayout(hbox)
         self.setLayout(vbox)
 
-    def get_parameters(self) -> dict:
+    def get_setting(self) -> dict:
         """获取当前所有参数配置"""
-        parameters: dict = {}
+        rule_setting: dict = {}
 
         for field, widget in self.widgets.items():
             if isinstance(widget, QtWidgets.QComboBox):
@@ -193,9 +193,9 @@ class RuleEditor(QtWidgets.QDialog):
                 value: float = widget.value()
             else:
                 value: str = widget.text()
-            parameters[field] = value
+            rule_setting[field] = value
 
-        return parameters
+        return rule_setting
 
 
 class RiskManager(QtWidgets.QWidget):

@@ -6,7 +6,7 @@ from typing import Any
 
 from vnpy.event import Event, EventEngine
 from vnpy.trader.event import EVENT_TICK, EVENT_ORDER, EVENT_TRADE, EVENT_TIMER
-from vnpy.trader.object import OrderRequest, CancelRequest, TickData, OrderData, TradeData, ContractData
+from vnpy.trader.object import OrderRequest, TickData, OrderData, TradeData, ContractData
 from vnpy.trader.engine import BaseEngine, MainEngine
 from vnpy.trader.utility import load_json, save_json
 
@@ -36,7 +36,7 @@ class RiskEngine(BaseEngine):
         self.timer_rules: list[RuleTemplate] = []
 
         self.load_rules()
-        self.register_rule_events()
+        self.register_events()
         self.patch_functions()
 
     def load_rules(self) -> None:
@@ -53,7 +53,8 @@ class RiskEngine(BaseEngine):
                     rule_classes.append(obj)
 
         for rule_class in rule_classes:
-            rule: RuleTemplate = rule_class(self, self.setting)
+            rule_setting: dict = self.setting.get(rule_class.__name__, {})
+            rule: RuleTemplate = rule_class(self, rule_setting)
             self.rules[rule.name] = rule
 
             # 更新字段名称映射
@@ -65,10 +66,7 @@ class RiskEngine(BaseEngine):
         self._send_order: Callable[[OrderRequest, str], str] = self.main_engine.send_order
         self.main_engine.send_order = self.send_order
 
-        self._cancel_order: Callable[[CancelRequest, str], None] = self.main_engine.cancel_order
-        self.main_engine.cancel_order = self.cancel_order
-
-    def register_rule_events(self) -> None:
+    def register_events(self) -> None:
         """检测规则需要的事件类型并注册"""
         # 遍历所有规则，检测并缓存需要回调的规则
         for rule in self.rules.values():
@@ -122,31 +120,19 @@ class RiskEngine(BaseEngine):
 
     def send_order(self, req: OrderRequest, gateway_name: str) -> str:
         """下单请求风控检查"""
-        result: bool = self.check_send_allowed(req, gateway_name)
+        result: bool = self.check_allowed(req, gateway_name)
         if not result:
             return ""
 
         return self._send_order(req, gateway_name)
 
-    def cancel_order(self, req: CancelRequest, gateway_name: str) -> None:
-        """撤单请求风控检查"""
-        result: bool = self.check_cancel_allowed(req)
-        if not result:
-            return
-
-        self._cancel_order(req, gateway_name)
-
-    def check_send_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
+    def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许发单"""
         for rule in self.rules.values():
-            if not rule.check_allowed(req, gateway_name):
-                return False
-        return True
-
-    def check_cancel_allowed(self, req: CancelRequest) -> bool:
-        """检查是否允许撤单"""
-        for rule in self.rules.values():
-            if not rule.check_cancel_allowed(req):
+            if (
+                rule.active                                         # 启用规则
+                and not rule.check_allowed(req, gateway_name)       # 
+            ):
                 return False
         return True
 
@@ -164,13 +150,13 @@ class RiskEngine(BaseEngine):
         event: Event = Event(EVENT_RISK_RULE, data)
         self.event_engine.put(event)
 
-    def update_rule_parameters(self, rule_name: str, parameters: dict) -> None:
+    def update_rule_setting(self, rule_name: str, rule_setting: dict) -> None:
         """更新指定规则的参数"""
-        self.setting.update(parameters)
+        self.setting[rule_name] = rule_setting
 
         # 更新到规则对象
         rule: RuleTemplate = self.rules[rule_name]
-        rule.update_setting(self.setting)
+        rule.update_setting(rule_setting)
         rule.put_event()
 
         # 保存配置到文件
