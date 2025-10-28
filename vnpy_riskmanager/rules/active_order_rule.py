@@ -4,9 +4,9 @@ from ..template import RuleTemplate
 
 
 class ActiveOrderRule(RuleTemplate):
-    """活动委托数量风控规则"""
+    """活动委托数量检查风控规则"""
 
-    name: str = "活动委托风控"
+    name: str = "活动委托检查"
 
     parameters: dict[str, str] = {
         "active_order_limit": "活动委托上限"

@@ -9,51 +9,33 @@ if TYPE_CHECKING:
 
 
 class OrderValidityRule(RuleTemplate):
-    """委托指令合法性监控"""
+    """委托指令检查风控规则"""
 
-    name: str = "指令合法风控"
-
-    parameters: dict[str, str] = {
-        "check_contract_exists": "检查合约",
-        "check_price_tick": "检查委托价格合法",
-        "check_volume_limit": "检查委托数量上限",
-        "max_order_volume": "单笔最大委托数量"
-    }
-
-    def __init__(self, risk_engine: "RiskEngine", setting: dict) -> None:
-        super().__init__(risk_engine, setting)
-
-        self.check_contract_exists: bool = True
-        self.check_price_tick: bool = True
-        self.check_volume_limit: bool = False
-        self.max_order_volume: int = 1000
+    name: str = "委托指令检查"
 
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许委托"""
-        # 检查合约是否存在
-        if self.check_contract_exists:
-            contract: ContractData | None = self.get_contract(req.vt_symbol)
-            if not contract:
-                self.write_log(f"委托失败：合约 {req.vt_symbol} 不存在")
-                return False
+        # 检查合约存在
+        contract: ContractData | None = self.get_contract(req.vt_symbol)
+        if not contract:
+            self.write_log(f"合约代码{req.vt_symbol}不存在")
+            return False
 
-            # 检查价格是否为 pricetick 的整数倍
-            if self.check_price_tick:
-                if contract.pricetick > 0:
-                    price_tick: float = contract.pricetick
-                    remainder: float = req.price % price_tick
-                    if abs(remainder) > 1e-6 and abs(remainder - price_tick) > 1e-6:
-                        self.write_log(
-                            f"委托失败：价格 {req.price} 不是最小变动价位 {price_tick} 的整数倍"
-                        )
-                        return False
+        # 检查最小价格变动
+        if contract.pricetick > 0:
+            pricetick: float = contract.pricetick
+
+            # 计算价格与最小变动价位的余数
+            remainder: float = req.price % pricetick
+
+            # 检查价格与最小变动价位的余数，确保价格为pricetick的整数倍（允许极小误差，适应浮点数精度问题）
+            if abs(remainder) > 1e-6 and abs(remainder - pricetick) > 1e-6:
+                self.write_log(f"价格{req.price}不是最小变动价位{pricetick}的整数倍")
+                return False
 
         # 检查委托数量上限
-        if self.check_volume_limit:
-            if req.volume > self.max_order_volume:
-                self.write_log(
-                    f"委托失败：数量 {req.volume} 超过单笔最大限制 {self.max_order_volume}"
-                )
-                return False
+        if contract.max_volume and req.volume > contract.max_volume:
+            self.write_log(f"委托数量{req.volume}超过最大限制{contract.max_volume}")
+            return False
 
         return True

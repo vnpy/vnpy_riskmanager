@@ -7,9 +7,9 @@ from ..template import RuleTemplate
 
 
 class TradingCountRule(RuleTemplate):
-    """报撤笔数风控"""
+    """报撤笔数检查风控规则"""
 
-    name: str = "报撤笔数风控"
+    name: str = "报撤笔数检查"
 
     parameters: dict[str, str] = {
         "total_order_limit": "全天委托上限",
