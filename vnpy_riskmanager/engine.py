@@ -31,7 +31,7 @@ from vnpy.trader.logger import ERROR
 
 from . import rules
 from .template import RuleTemplate
-from .base import APP_NAME, EVENT_RISK_RULE
+from .base import APP_NAME, EVENT_RISK_RULE, EVENT_RISK_NOTIFY
 
 
 class RiskEngine(BaseEngine):
@@ -163,6 +163,9 @@ class RiskEngine(BaseEngine):
             gateway_name=APP_NAME,
         )
         self.event_engine.put(Event(EVENT_LOG, log))
+
+        # 推送风险通知事件
+        self.event_engine.put(Event(EVENT_RISK_NOTIFY, msg))
 
         # 输出拦截日志后播放声音
         if winsound:

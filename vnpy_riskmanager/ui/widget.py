@@ -1,10 +1,11 @@
+from pathlib import Path
 from typing import Any
 
 from vnpy.event import EventEngine, Event
 from vnpy.trader.engine import MainEngine
-from vnpy.trader.ui import QtWidgets, QtCore
+from vnpy.trader.ui import QtWidgets, QtCore, QtGui
 
-from ..engine import RiskEngine, APP_NAME, EVENT_RISK_RULE
+from ..engine import RiskEngine, APP_NAME, EVENT_RISK_RULE, EVENT_RISK_NOTIFY
 
 
 class RuleWidget(QtWidgets.QGroupBox):
@@ -202,7 +203,8 @@ class RuleEditor(QtWidgets.QDialog):
 class RiskManager(QtWidgets.QWidget):
     """风控管理器"""
 
-    signal: QtCore.Signal = QtCore.Signal(Event)
+    signal_rule: QtCore.Signal = QtCore.Signal(Event)
+    signal_notify: QtCore.Signal = QtCore.Signal(Event)
 
     def __init__(self, main_engine: MainEngine, event_engine: EventEngine) -> None:
         """构造函数"""
@@ -215,6 +217,7 @@ class RiskManager(QtWidgets.QWidget):
         self.rule_widgets: dict[str, RuleWidget] = {}
 
         self.init_ui()
+        self.init_tray()
         self.register_event()
 
     def init_ui(self) -> None:
@@ -246,10 +249,22 @@ class RiskManager(QtWidgets.QWidget):
         self.list_widget.currentRowChanged.connect(self.stacked_widget.setCurrentIndex)
         self.list_widget.setCurrentRow(0)
 
+    def init_tray(self) -> None:
+        """初始化系统托盘图标"""
+        icon_path: str = str(Path(__file__).parent / "rm.ico")
+        icon: QtGui.QIcon = QtGui.QIcon(icon_path)
+
+        self.tray_icon: QtWidgets.QSystemTrayIcon = QtWidgets.QSystemTrayIcon(self)
+        self.tray_icon.setIcon(icon)
+        self.tray_icon.show()
+
     def register_event(self) -> None:
-        """创建并启动用于刷新监控变量的定时器"""
-        self.signal.connect(self.process_rule_event)
-        self.event_engine.register(EVENT_RISK_RULE, self.signal.emit)
+        """注册事件监听"""
+        self.signal_rule.connect(self.process_rule_event)
+        self.signal_notify.connect(self.process_notify_event)
+
+        self.event_engine.register(EVENT_RISK_RULE, self.signal_rule.emit)
+        self.event_engine.register(EVENT_RISK_NOTIFY, self.signal_notify.emit)
 
     def process_rule_event(self, event: Event) -> None:
         """定时更新所有规则控件的监控变量"""
@@ -259,3 +274,14 @@ class RiskManager(QtWidgets.QWidget):
         rule_widget: RuleWidget | None = self.rule_widgets.get(rule_name)
         if rule_widget:
             rule_widget.update_data(data)
+
+    def process_notify_event(self, event: Event) -> None:
+        """显示系统托盘通知"""
+        message: str = event.data
+
+        self.tray_icon.showMessage(
+            "交易风控",
+            message,
+            QtWidgets.QSystemTrayIcon.MessageIcon.Critical,
+            30000    # 30秒
+        )
