@@ -4,6 +4,11 @@ import pkgutil
 from collections.abc import Callable
 from typing import Any
 
+try:
+    import winsound
+except ImportError:
+    winsound = None     # type: ignore
+
 from vnpy.event import Event, EventEngine
 from vnpy.trader.event import (
     EVENT_TICK,
@@ -158,6 +163,10 @@ class RiskEngine(BaseEngine):
             gateway_name=APP_NAME,
         )
         self.event_engine.put(Event(EVENT_LOG, log))
+
+        # 输出拦截日志后播放声音
+        if winsound:
+            winsound.PlaySound("SystemExclamation", winsound.SND_ALIAS | winsound.SND_ASYNC)
 
     def get_all_active_orders(self) -> list[OrderData]:
         """查询所有活动委托（供规则调用）"""
