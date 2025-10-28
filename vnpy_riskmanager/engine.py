@@ -1,8 +1,10 @@
 import importlib
-import inspect
-import pkgutil
+import traceback
 from collections.abc import Callable
 from typing import Any
+from pathlib import Path
+from glob import glob
+from types import ModuleType
 
 try:
     import winsound
@@ -29,7 +31,6 @@ from vnpy.trader.engine import BaseEngine, MainEngine
 from vnpy.trader.utility import load_json, save_json
 from vnpy.trader.logger import ERROR
 
-from . import rules
 from .template import RuleTemplate
 from .base import APP_NAME, EVENT_RISK_RULE, EVENT_RISK_NOTIFY
 
@@ -59,26 +60,48 @@ class RiskEngine(BaseEngine):
         self.patch_functions()
 
     def load_rules(self) -> None:
-        """加载风控规则"""
-        rule_classes: list[type[RuleTemplate]] = []
+        """加载本地工具"""
+        path_1: Path = Path(__file__).parent.joinpath("rules")
+        self.load_rules_from_folder(path_1, "vnpy_riskmanager.rules")
 
-        package_path = rules.__path__
-        package_name = rules.__name__
+        path_2: Path = Path.cwd().joinpath("rules")
+        self.load_rules_from_folder(path_2, "rules")
 
-        for _, module_name, _ in pkgutil.iter_modules(package_path, prefix=f"{package_name}."):
-            module = importlib.import_module(module_name)
-            for _, obj in inspect.getmembers(module, inspect.isclass):
-                if issubclass(obj, RuleTemplate) and obj is not RuleTemplate:
-                    rule_classes.append(obj)
+    def load_rules_from_folder(self, folder_path: Path, module_name: str) -> None:
+        """从文件夹加载本地工具"""
+        pathname: str = str(folder_path.joinpath("*.py"))
 
-        for rule_class in rule_classes:
-            rule_setting: dict = self.setting.get(rule_class.name, {})
-            rule: RuleTemplate = rule_class(self, rule_setting)
-            self.rules[rule.name] = rule
+        for filepath in glob(pathname):
+            filename: str = Path(filepath).stem
+            name: str = f"{module_name}.{filename}"
+            self.load_rules_from_module(name)
 
-            # 更新字段名称映射
-            self.field_name_map.update(rule.parameters)
-            self.field_name_map.update(rule.variables)
+    def load_rules_from_module(self, module_name: str) -> None:
+        """从模块加载本地工具"""
+        try:
+            module: ModuleType = importlib.import_module(module_name)
+
+            for name in dir(module):
+                value: Any = getattr(module, name)
+                if (
+                    isinstance(value, type)
+                    and issubclass(value, RuleTemplate)
+                    and value is not RuleTemplate
+                ):
+                    self.add_rule(value)
+        except Exception:
+            msg: str = f"Local tool [{module_name}] load failed: {traceback.format_exc()}"
+            print(msg)
+
+    def add_rule(self, rule_class: type[RuleTemplate]) -> None:
+        """注册规则"""
+        rule_setting: dict = self.setting.get(rule_class.name, {})
+        rule: RuleTemplate = rule_class(self, rule_setting)
+        self.rules[rule.name] = rule
+
+        # 更新字段名称映射
+        self.field_name_map.update(rule.parameters)
+        self.field_name_map.update(rule.variables)
 
     def patch_functions(self) -> None:
         """动态替换主引擎函数"""
@@ -89,50 +112,50 @@ class RiskEngine(BaseEngine):
         """检测规则需要的事件类型并注册"""
         # 遍历所有规则，检测并缓存需要回调的规则
         for rule in self.rules.values():
-            if self._needs_callback(rule, "on_tick"):
+            if self.needs_callback(rule, "on_tick"):
                 self.tick_rules.append(rule)
-            if self._needs_callback(rule, "on_order"):
+            if self.needs_callback(rule, "on_order"):
                 self.order_rules.append(rule)
-            if self._needs_callback(rule, "on_trade"):
+            if self.needs_callback(rule, "on_trade"):
                 self.trade_rules.append(rule)
-            if self._needs_callback(rule, "on_timer"):
+            if self.needs_callback(rule, "on_timer"):
                 self.timer_rules.append(rule)
 
         # 按需注册事件监听
         if self.tick_rules:
-            self.event_engine.register(EVENT_TICK, self._process_tick_event)
+            self.event_engine.register(EVENT_TICK, self.process_tick_event)
         if self.order_rules:
-            self.event_engine.register(EVENT_ORDER, self._process_order_event)
+            self.event_engine.register(EVENT_ORDER, self.process_order_event)
         if self.trade_rules:
-            self.event_engine.register(EVENT_TRADE, self._process_trade_event)
+            self.event_engine.register(EVENT_TRADE, self.process_trade_event)
         if self.timer_rules:
-            self.event_engine.register(EVENT_TIMER, self._process_timer_event)
+            self.event_engine.register(EVENT_TIMER, self.process_timer_event)
 
-    def _needs_callback(self, rule: RuleTemplate, method_name: str) -> bool:
+    def needs_callback(self, rule: RuleTemplate, method_name: str) -> bool:
         """检测规则是否重写了某个回调方法"""
         rule_method = getattr(rule, method_name)
         base_method = getattr(RuleTemplate, method_name)
         return rule_method.__func__ is not base_method
 
-    def _process_tick_event(self, event: Event) -> None:
+    def process_tick_event(self, event: Event) -> None:
         """处理行情事件"""
         tick: TickData = event.data
         for rule in self.tick_rules:
             rule.on_tick(tick)
 
-    def _process_order_event(self, event: Event) -> None:
+    def process_order_event(self, event: Event) -> None:
         """处理委托事件"""
         order: OrderData = event.data
         for rule in self.order_rules:
             rule.on_order(order)
 
-    def _process_trade_event(self, event: Event) -> None:
+    def process_trade_event(self, event: Event) -> None:
         """处理成交事件"""
         trade: TradeData = event.data
         for rule in self.trade_rules:
             rule.on_trade(trade)
 
-    def _process_timer_event(self, event: Event) -> None:
+    def process_timer_event(self, event: Event) -> None:
         """处理定时事件"""
         for rule in self.timer_rules:
             rule.on_timer()
