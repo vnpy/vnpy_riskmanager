@@ -7,8 +7,8 @@ cdef class OrderValidityRuleCy(RuleTemplate):
 
     cpdef bint check_allowed(self, object req, str gateway_name):
         """检查是否允许委托"""
-        cdef float pricetick
-        cdef float remainder
+        cdef double pricetick
+        cdef double remainder
 
         # 检查合约存在
         cdef object contract = self.get_contract(req.vt_symbol)
