@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+import os
 from Cython.Build import cythonize
 from setuptools.extension import Extension
 
@@ -16,27 +17,27 @@ def get_version() -> str:
 extensions = [
     Extension(
         "vnpy_riskmanager.template",
-        ["vnpy_riskmanager/template.pyx"],
+        [os.path.join("vnpy_riskmanager", "template.pyx")],
     ),
     Extension(
         "vnpy_riskmanager.rules.active_order_rule_cy",
-        ["vnpy_riskmanager/rules/active_order_rule_cy.pyx"],
+        [os.path.join("vnpy_riskmanager", "rules", "active_order_rule_cy.pyx")],
     ),
     Extension(
         "vnpy_riskmanager.rules.daily_limit_rule_cy",
-        ["vnpy_riskmanager/rules/daily_limit_rule_cy.pyx"],
+        [os.path.join("vnpy_riskmanager", "rules", "daily_limit_rule_cy.pyx")],
     ),
     Extension(
         "vnpy_riskmanager.rules.duplicate_order_rule_cy",
-        ["vnpy_riskmanager/rules/duplicate_order_rule_cy.pyx"],
+        [os.path.join("vnpy_riskmanager", "rules", "duplicate_order_rule_cy.pyx")],
     ),
     Extension(
         "vnpy_riskmanager.rules.order_size_rule_cy",
-        ["vnpy_riskmanager/rules/order_size_rule_cy.pyx"],
+        [os.path.join("vnpy_riskmanager", "rules", "order_size_rule_cy.pyx")],
     ),
     Extension(
         "vnpy_riskmanager.rules.order_validity_rule_cy",
-        ["vnpy_riskmanager/rules/order_validity_rule_cy.pyx"],
+        [os.path.join("vnpy_riskmanager", "rules", "order_validity_rule_cy.pyx")],
     )
 ]
 
