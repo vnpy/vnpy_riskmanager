@@ -27,7 +27,7 @@ cdef class ActiveOrderRuleCy(RuleTemplate):
     cpdef bint check_allowed(self, object req, str gateway_name):
         """检查是否允许委托"""
         if self.active_order_count >= self.active_order_limit:
-            msg = f"活动委托数量{self.active_order_count}达到上限{self.active_order_limit}：{self.format_req(req)}"
+            msg = f"活动委托数量{self.active_order_count}达到上限{self.active_order_limit}：{req}"
             self.write_log(msg)
             return False
 
