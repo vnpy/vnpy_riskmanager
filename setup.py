@@ -1,7 +1,8 @@
-from setuptools import setup, find_packages
 import os
-from Cython.Build import cythonize
+
+from setuptools import setup, find_packages
 from setuptools.extension import Extension
+from Cython.Build import cythonize
 
 
 def get_version() -> str:
@@ -43,12 +44,12 @@ extensions = [
 
 # Cython 编译配置
 compiler_directives = {
-    "language_level": "3",          # Python 3 语法
-    "boundscheck": False,            # 禁用边界检查（性能优化）
-    "wraparound": False,             # 禁用负索引（性能优化）
-    "cdivision": True,               # C 风格除法（不检查除零）
-    "initializedcheck": False,       # 禁用初始化检查
-    "embedsignature": True,          # 嵌入函数签名（便于调试）
+    "language_level": "3",              # Python 3 语法
+    "boundscheck": False,               # 禁用边界检查（性能优化）
+    "wraparound": False,                # 禁用负索引（性能优化）
+    "cdivision": True,                  # C 风格除法（不检查除零）
+    "initializedcheck": False,          # 禁用初始化检查
+    "embedsignature": True,             # 嵌入函数签名（便于调试）
 }
 
 setup(
@@ -58,10 +59,10 @@ setup(
     ext_modules=cythonize(
         extensions,
         compiler_directives=compiler_directives,
-        annotate=False,  # 设为 True 可生成 HTML 性能分析文件
+        annotate=False,     # 设为 True 可生成 HTML 性能分析文件
     ),
     package_data={
         "vnpy_riskmanager": ["*.pxd", "*.pyx"],  # 包含 Cython 源文件
     },
-    zip_safe=False,  # Cython 扩展不支持 zip 打包
+    zip_safe=False,         # Cython 扩展不支持 zip 打包
 )
