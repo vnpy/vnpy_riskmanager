@@ -213,10 +213,6 @@ class MyCustomRule(RuleTemplate):
             self.write_log(f"委托数量 {req.volume} 超过限制 {self.my_limit}")
             return False
         return True
-
-    def check_cancel_allowed(self, req: CancelRequest) -> bool:
-        """检查是否允许撤单（可选）"""
-        return True
 ```
 
 3. **无需手动注册** - `RiskEngine` 会自动发现并加载 `rules/` 目录下所有继承自 `RuleTemplate` 的规则类
@@ -270,10 +266,6 @@ cdef class MyCustomRule(RuleTemplate):
         if req.volume > self.my_limit:
             self.write_log(f"委托数量 {req.volume} 超过限制 {self.my_limit}")
             return False
-        return True
-
-    cpdef bint check_cancel_allowed(self, object req):
-        """检查是否允许撤单"""
         return True
 ```
 

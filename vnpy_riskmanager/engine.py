@@ -69,12 +69,17 @@ class RiskEngine(BaseEngine):
 
     def load_rules_from_folder(self, folder_path: Path, module_name: str) -> None:
         """从文件夹加载本地工具"""
-        pathname: str = str(folder_path.joinpath("*.py"))
+        for suffix in ["py", "pyd", "so"]:
+            pathname: str = str(folder_path.joinpath(f"*.{suffix}"))
 
-        for filepath in glob(pathname):
-            filename: str = Path(filepath).stem
-            name: str = f"{module_name}.{filename}"
-            self.load_rules_from_module(name)
+            for filepath in glob(pathname):
+                filename: str = Path(filepath).stem
+
+                if suffix in {"pyd", "so"}:
+                    filename = filename.split(".")[0]       # 去掉特定版本后缀
+
+                name: str = f"{module_name}.{filename}"
+                self.load_rules_from_module(name)
 
     def load_rules_from_module(self, module_name: str) -> None:
         """从模块加载本地工具"""

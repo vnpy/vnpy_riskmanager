@@ -19,37 +19,38 @@ extensions = [
         ["vnpy_riskmanager/template.pyx"],
     ),
     Extension(
-        "vnpy_riskmanager.rules.order_size_rule",
-        ["vnpy_riskmanager/rules/order_size_rule.pyx"],
+        "vnpy_riskmanager.rules.active_order_rule_cy",
+        ["vnpy_riskmanager/rules/active_order_rule_cy.pyx"],
     ),
-    Extension(
-        "vnpy_riskmanager.rules.order_flow_rule",
-        ["vnpy_riskmanager/rules/order_flow_rule.pyx"],
-    ),
-    Extension(
-        "vnpy_riskmanager.rules.active_order_rule",
-        ["vnpy_riskmanager/rules/active_order_rule.pyx"],
-    ),
-    Extension(
-        "vnpy_riskmanager.rules.cancel_limit_rule",
-        ["vnpy_riskmanager/rules/cancel_limit_rule.pyx"],
-    ),
-    Extension(
-        "vnpy_riskmanager.rules.order_validity_rule",
-        ["vnpy_riskmanager/rules/order_validity_rule.pyx"],
-    ),
-    Extension(
-        "vnpy_riskmanager.rules.duplicate_order_rule",
-        ["vnpy_riskmanager/rules/duplicate_order_rule.pyx"],
-    ),
-    Extension(
-        "vnpy_riskmanager.rules.daily_limit_rule",
-        ["vnpy_riskmanager/rules/daily_limit_rule.pyx"],
-    ),
-    Extension(
-        "vnpy_riskmanager.rules.rolling_window_rule",
-        ["vnpy_riskmanager/rules/rolling_window_rule.pyx"],
-    ),
+    # 以下规则尚未实现，暂时注释掉
+    # Extension(
+    #     "vnpy_riskmanager.rules.order_size_rule",
+    #     ["vnpy_riskmanager/rules/order_size_rule.pyx"],
+    # ),
+    # Extension(
+    #     "vnpy_riskmanager.rules.order_flow_rule",
+    #     ["vnpy_riskmanager/rules/order_flow_rule.pyx"],
+    # ),
+    # Extension(
+    #     "vnpy_riskmanager.rules.cancel_limit_rule",
+    #     ["vnpy_riskmanager/rules/cancel_limit_rule.pyx"],
+    # ),
+    # Extension(
+    #     "vnpy_riskmanager.rules.order_validity_rule",
+    #     ["vnpy_riskmanager/rules/order_validity_rule.pyx"],
+    # ),
+    # Extension(
+    #     "vnpy_riskmanager.rules.duplicate_order_rule",
+    #     ["vnpy_riskmanager/rules/duplicate_order_rule.pyx"],
+    # ),
+    # Extension(
+    #     "vnpy_riskmanager.rules.daily_limit_rule",
+    #     ["vnpy_riskmanager/rules/daily_limit_rule.pyx"],
+    # ),
+    # Extension(
+    #     "vnpy_riskmanager.rules.rolling_window_rule",
+    #     ["vnpy_riskmanager/rules/rolling_window_rule.pyx"],
+    # ),
 ]
 
 # Cython 编译配置
