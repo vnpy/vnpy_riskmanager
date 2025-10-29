@@ -107,14 +107,12 @@ class RiskEngine(BaseEngine):
                 value: Any = getattr(module, name)
                 if (
                     isinstance(value, type)
-                    and issubclass(value, RuleTemplate)
-                    and value is not RuleTemplate
+                    and name.endswith("Rule")
                 ):
                     self.rule_classes[name] = (value, module_name)
-
         except Exception:
-            msg: str = f"Local tool [{module_name}] load failed: {traceback.format_exc()}"
-            print(msg)
+            msg: str = f"风控规则[{module_name}]加载失败：{traceback.format_exc()}"
+            self.main_engine.write_log(msg, level=ERROR, source="RiskEngine")
 
     def add_rule(self, rule_class: type[RuleTemplate]) -> None:
         """注册规则"""
