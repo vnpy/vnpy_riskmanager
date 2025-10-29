@@ -44,10 +44,17 @@ class RiskEngine(BaseEngine):
         """构造函数"""
         super().__init__(main_engine, event_engine, APP_NAME)
 
+        # 规则类收集字典：key为规则名称，value为(规则类, 模块名)
+        self.rule_classes: dict[str, tuple[type[RuleTemplate], str]] = {}
+
+        # 风控规则实例（遍历执行检查）
         self.rules: dict[str, RuleTemplate] = {}
+
+        # 风控规则配置（从文件加载）
         self.setting: dict = load_json(self.setting_filename)
 
-        self.field_name_map: dict = {}      # 规则字段名称映射
+        # 风控规则字段名称映射（用于UI显示）
+        self.field_name_map: dict = {}
 
         # 缓存：记录哪些规则需要哪些回调
         self.tick_rules: list[RuleTemplate] = []
@@ -61,11 +68,21 @@ class RiskEngine(BaseEngine):
 
     def load_rules(self) -> None:
         """加载本地工具"""
+        # 收集所有规则类
         path_1: Path = Path(__file__).parent.joinpath("rules")
         self.load_rules_from_folder(path_1, "vnpy_riskmanager.rules")
 
         path_2: Path = Path.cwd().joinpath("rules")
         self.load_rules_from_folder(path_2, "rules")
+
+        # 实例化收集到的规则类
+        for class_name, (rule_class, module_name) in self.rule_classes.items():
+            self.add_rule(rule_class)
+
+            self.main_engine.write_log(
+                msg=f"风控规则[{class_name}]加载成功，模块：{module_name}",
+                source="RiskEngine"
+            )
 
     def load_rules_from_folder(self, folder_path: Path, module_name: str) -> None:
         """从文件夹加载本地工具"""
@@ -93,7 +110,8 @@ class RiskEngine(BaseEngine):
                     and issubclass(value, RuleTemplate)
                     and value is not RuleTemplate
                 ):
-                    self.add_rule(value)
+                    self.rule_classes[name] = (value, module_name)
+
         except Exception:
             msg: str = f"Local tool [{module_name}] load failed: {traceback.format_exc()}"
             print(msg)
