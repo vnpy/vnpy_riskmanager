@@ -3,7 +3,7 @@ from Cython.Build import cythonize
 from setuptools.extension import Extension
 
 
-def get_version():
+def get_version() -> str:
     """从 __init__.py 读取版本号"""
     with open("vnpy_riskmanager/__init__.py", encoding="utf-8") as f:
         for line in f:
@@ -22,35 +22,22 @@ extensions = [
         "vnpy_riskmanager.rules.active_order_rule_cy",
         ["vnpy_riskmanager/rules/active_order_rule_cy.pyx"],
     ),
-    # 以下规则尚未实现，暂时注释掉
-    # Extension(
-    #     "vnpy_riskmanager.rules.order_size_rule",
-    #     ["vnpy_riskmanager/rules/order_size_rule.pyx"],
-    # ),
-    # Extension(
-    #     "vnpy_riskmanager.rules.order_flow_rule",
-    #     ["vnpy_riskmanager/rules/order_flow_rule.pyx"],
-    # ),
-    # Extension(
-    #     "vnpy_riskmanager.rules.cancel_limit_rule",
-    #     ["vnpy_riskmanager/rules/cancel_limit_rule.pyx"],
-    # ),
-    # Extension(
-    #     "vnpy_riskmanager.rules.order_validity_rule",
-    #     ["vnpy_riskmanager/rules/order_validity_rule.pyx"],
-    # ),
-    # Extension(
-    #     "vnpy_riskmanager.rules.duplicate_order_rule",
-    #     ["vnpy_riskmanager/rules/duplicate_order_rule.pyx"],
-    # ),
-    # Extension(
-    #     "vnpy_riskmanager.rules.daily_limit_rule",
-    #     ["vnpy_riskmanager/rules/daily_limit_rule.pyx"],
-    # ),
-    # Extension(
-    #     "vnpy_riskmanager.rules.rolling_window_rule",
-    #     ["vnpy_riskmanager/rules/rolling_window_rule.pyx"],
-    # ),
+    Extension(
+        "vnpy_riskmanager.rules.daily_limit_rule_cy",
+        ["vnpy_riskmanager/rules/daily_limit_rule_cy.pyx"],
+    ),
+    Extension(
+        "vnpy_riskmanager.rules.duplicate_order_rule_cy",
+        ["vnpy_riskmanager/rules/duplicate_order_rule_cy.pyx"],
+    ),
+    Extension(
+        "vnpy_riskmanager.rules.order_size_rule_cy",
+        ["vnpy_riskmanager/rules/order_size_rule_cy.pyx"],
+    ),
+    Extension(
+        "vnpy_riskmanager.rules.order_validity_rule_cy",
+        ["vnpy_riskmanager/rules/order_validity_rule_cy.pyx"],
+    )
 ]
 
 # Cython 编译配置
