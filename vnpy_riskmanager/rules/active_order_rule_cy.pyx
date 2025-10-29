@@ -15,15 +15,6 @@ cdef class ActiveOrderRuleCy(RuleTemplate):
 
     cpdef void on_init(self):
         """初始化"""
-        # 设置规则元数据
-        self.name = "活动委托检查"
-        
-        # 设置参数元数据
-        self.parameters["active_order_limit"] = "活动委托上限"
-        
-        # 设置变量元数据
-        self.variables["active_order_count"] = "活动委托数量"
-        
         # 默认参数
         self.active_order_limit = 50
 
@@ -54,3 +45,18 @@ cdef class ActiveOrderRuleCy(RuleTemplate):
         self.active_order_count = len(self.active_orders)
 
         self.put_event()
+
+
+# Python wrapper类，用于提供类属性（engine.py需要）
+class ActiveOrderRule(ActiveOrderRuleCy):
+    """活动委托检查规则的Python包装类"""
+    
+    name: str = "活动委托检查"
+    
+    parameters: dict[str, str] = {
+        "active_order_limit": "活动委托上限"
+    }
+    
+    variables: dict[str, str] = {
+        "active_order_count": "活动委托数量"
+    }
