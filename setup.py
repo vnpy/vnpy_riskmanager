@@ -1,3 +1,4 @@
+"""编译 vnpy_riskmanager 的 Cython 扩展。"""
 import os
 
 from setuptools import setup, find_packages

@@ -1,3 +1,4 @@
+"""交易风控界面组件。"""
 from pathlib import Path
 from typing import Any
 
@@ -119,7 +120,7 @@ class RuleEditor(QtWidgets.QDialog):
     """用于编辑规则参数的对话框"""
 
     def __init__(self, rule_name: str, risk_engine: RiskEngine, parameters: dict) -> None:
-        """"""
+        """保存规则名、风控引擎和参数，并初始化编辑界面。"""
         super().__init__()
 
         self.rule_name: str = rule_name

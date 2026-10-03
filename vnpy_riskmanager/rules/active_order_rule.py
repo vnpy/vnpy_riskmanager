@@ -1,3 +1,4 @@
+"""活动委托数量检查规则。"""
 from vnpy.trader.object import OrderRequest, OrderData
 
 from ..template import RuleTemplate

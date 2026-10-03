@@ -1,7 +1,3 @@
-"""
-vnpy_riskmanager模块一致性测试
-"""
-
 import unittest
 from typing import Any
 from collections import defaultdict
@@ -28,7 +24,6 @@ except ImportError:
 
 
 class MockContract:
-    """模拟合约数据"""
 
     def __init__(self) -> None:
         self.pricetick: float = 0.1
@@ -38,7 +33,6 @@ class MockContract:
 
 
 class MockRiskEngine:
-    """模拟风控引擎"""
 
     def __init__(self) -> None:
         self.contract = MockContract()
@@ -56,7 +50,6 @@ class MockRiskEngine:
 
 
 class MockOrderRequest:
-    """模拟委托请求"""
 
     def __init__(
         self,
@@ -79,7 +72,6 @@ class MockOrderRequest:
 
 
 class MockOrderData:
-    """模拟委托数据"""
 
     def __init__(
         self,
@@ -96,7 +88,6 @@ class MockOrderData:
 
 
 class MockTradeData:
-    """模拟成交数据"""
 
     def __init__(self, vt_tradeid: str, vt_symbol: str):
         self.vt_tradeid = vt_tradeid
@@ -104,12 +95,10 @@ class MockTradeData:
 
 
 class BaseRuleConsistencyTest(unittest.TestCase):
-    """规则一致性测试的基类"""
     py_rule_class: type | None = None
     cy_rule_class: type | None = None
 
     def setUp(self) -> None:
-        """为每个测试设置新的Python和Cython规则实例"""
         if self.py_rule_class is None or self.cy_rule_class is None:
             self.skipTest("规则一致性测试的基类")
 
@@ -118,7 +107,6 @@ class BaseRuleConsistencyTest(unittest.TestCase):
         self.cy_rule = self.cy_rule_class(self.mock_engine, {})
 
     def assert_state_equal(self, msg: str) -> None:
-        """用于比较两个规则内部状态的辅助方法"""
         py_data = self.py_rule.get_data()
         cy_data = self.cy_rule.get_data()
 
@@ -140,7 +128,6 @@ class TestActiveOrderRuleConsistency(BaseRuleConsistencyTest):
     cy_rule_class = CyActiveOrderRule
 
     def test_on_order(self) -> None:
-        """测试on_order的一致性"""
         self.assert_state_equal("初始状态应相同")
 
         # 活动委托
@@ -156,7 +143,6 @@ class TestActiveOrderRuleConsistency(BaseRuleConsistencyTest):
         self.assert_state_equal("委托变为非活动后状态应相同")
 
     def test_check_allowed(self) -> None:
-        """测试check_allowed的一致性"""
         req = MockOrderRequest("IF2401", 1, 4000)
         self.assertEqual(
             self.py_rule.check_allowed(req, "CTP"),
@@ -176,7 +162,6 @@ class TestDailyLimitRuleConsistency(BaseRuleConsistencyTest):
     cy_rule_class = CyDailyLimitRule
 
     def test_consistency(self) -> None:
-        """测试完整的生命周期一致性"""
         self.assert_state_equal("初始状态应相同")
 
         # 新委托
@@ -203,7 +188,6 @@ class TestDuplicateOrderRuleConsistency(BaseRuleConsistencyTest):
     cy_rule_class = CyDuplicateOrderRule
 
     def test_check_allowed(self) -> None:
-        """测试check_allowed的一致性"""
         req1 = MockOrderRequest("IF2401", 1, 4000)
         req2 = MockOrderRequest("IF2401", 1, 4000)
 
@@ -223,7 +207,6 @@ class TestOrderSizeRuleConsistency(BaseRuleConsistencyTest):
     cy_rule_class = CyOrderSizeRule
 
     def test_check_allowed(self) -> None:
-        """测试check_allowed的一致性"""
         # 合法
         req1 = MockOrderRequest("IF2401", 1, 4000)
         self.assertEqual(
@@ -251,7 +234,6 @@ class TestOrderValidityRuleConsistency(BaseRuleConsistencyTest):
     cy_rule_class = CyOrderValidityRule
 
     def test_check_allowed(self) -> None:
-        """测试check_allowed的一致性"""
         # 合法
         req1 = MockOrderRequest("IF2401", 10, 4000.1)
         self.assertEqual(

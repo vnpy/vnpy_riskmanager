@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""交易风控应用包。"""
 
 from pathlib import Path
 
@@ -37,7 +38,7 @@ __version__ = "2.0.0"
 
 
 class RiskManagerApp(BaseApp):
-    """"""
+    """交易风控应用。"""
     app_name: str = APP_NAME
     app_module: str = __module__
     app_path: Path = Path(__file__).parent

@@ -1,3 +1,4 @@
+"""风控规则模板。"""
 from typing import TYPE_CHECKING, Any
 
 from vnpy.trader.object import OrderRequest, TickData, OrderData, TradeData, ContractData

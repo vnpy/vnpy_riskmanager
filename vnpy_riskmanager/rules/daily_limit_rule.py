@@ -1,3 +1,4 @@
+"""每日委托、撤单和成交上限检查规则。"""
 from collections import defaultdict
 
 from vnpy.trader.object import OrderRequest, OrderData, TradeData

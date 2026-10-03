@@ -11,6 +11,7 @@ class MockContract:
     """模拟合约对象"""
 
     def __init__(self) -> None:
+        """设置价格跳动、数量上下限和合约乘数。"""
         self.pricetick: float = 0.1
         self.max_volume: float = 100.0
         self.min_volume: float = 1.0
@@ -21,6 +22,7 @@ class MockRiskEngine:
     """模拟风控引擎"""
 
     def __init__(self) -> None:
+        """准备日志、事件列表和模拟合约。"""
         self.logs: list[str] = []
         self.events: list[Any] = []
         self.contract = MockContract()
@@ -50,6 +52,7 @@ class MockOrderRequest:
         price: float = 4000.0,
         reference: str = ""
     ):
+        """记录合约、数量、价格和引用，并挂上模拟枚举。"""
         self.vt_symbol: str = symbol
         self.volume: float = volume
         self.price: float = price
@@ -57,10 +60,13 @@ class MockOrderRequest:
 
         # 模拟枚举类型
         class Type:
+            """模拟限价委托类型。"""
             value = "LIMIT"
         class Direction:
+            """模拟多头方向。"""
             value = "LONG"
         class Offset:
+            """模拟开仓。"""
             value = "OPEN"
 
         self.type = Type()

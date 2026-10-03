@@ -1,3 +1,4 @@
+"""委托数量和委托价值检查规则。"""
 from vnpy.trader.object import OrderRequest, ContractData
 
 from ..template import RuleTemplate

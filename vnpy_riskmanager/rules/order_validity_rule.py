@@ -1,3 +1,4 @@
+"""委托合约、价格和数量合法性检查规则。"""
 from vnpy.trader.object import OrderRequest, ContractData
 
 from ..template import RuleTemplate

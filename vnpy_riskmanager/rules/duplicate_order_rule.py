@@ -1,3 +1,4 @@
+"""重复报单检查规则。"""
 from collections import defaultdict
 
 from vnpy.trader.object import OrderRequest
