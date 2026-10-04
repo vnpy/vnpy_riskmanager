@@ -2,7 +2,7 @@
 import importlib
 import traceback
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 from pathlib import Path
 from glob import glob
 from types import ModuleType
@@ -113,7 +113,9 @@ class RiskEngine(BaseEngine):
                     self.rule_classes[name] = (value, module_name)
         except Exception:
             msg: str = f"风控规则[{module_name}]加载失败：{traceback.format_exc()}"
-            self.main_engine.write_log(msg, level=ERROR, source="RiskEngine")
+            # MainEngine.write_log 不接受 level；保留该关键字，避免改变现有调用。
+            log_writer: Callable[..., None] = cast(Callable[..., None], self.main_engine.write_log)
+            log_writer(msg, level=ERROR, source="RiskEngine")
 
     def add_rule(self, rule_class: type[RuleTemplate]) -> None:
         """注册规则"""
@@ -128,7 +130,7 @@ class RiskEngine(BaseEngine):
     def patch_functions(self) -> None:
         """动态替换主引擎函数"""
         self._send_order: Callable[[OrderRequest, str], str] = self.main_engine.send_order
-        self.main_engine.send_order = self.send_order
+        object.__setattr__(self.main_engine, "send_order", self.send_order)
 
     def register_events(self) -> None:
         """检测规则需要的事件类型并注册"""

@@ -1,6 +1,6 @@
 """交易风控界面组件。"""
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from vnpy.event import EventEngine, Event
 from vnpy.trader.engine import MainEngine
@@ -79,7 +79,7 @@ class RuleWidget(QtWidgets.QGroupBox):
         parameters: dict = data["parameters"]
 
         for field, value in parameters.items():
-            item: QtWidgets.QTreeWidgetItem = self.items.get(field)
+            item: QtWidgets.QTreeWidgetItem = cast(QtWidgets.QTreeWidgetItem, self.items.get(field))
             item.setText(2, str(value))
 
         # 变量部分
@@ -90,7 +90,7 @@ class RuleWidget(QtWidgets.QGroupBox):
                 item = self.items[field]
 
                 for k, v in value.items():
-                    sub_item: QtWidgets.QTreeWidgetItem = self.items.get(f"{field}.{k}")
+                    sub_item: QtWidgets.QTreeWidgetItem | None = self.items.get(f"{field}.{k}")
                     if sub_item:
                         sub_item.setText(3, str(v))
                     else:
@@ -127,7 +127,7 @@ class RuleEditor(QtWidgets.QDialog):
         self.risk_engine: RiskEngine = risk_engine
         self.parameters: dict = parameters
 
-        self.widgets: dict[str, QtWidgets.QWidget] = {}
+        self.widgets: dict[str, QtWidgets.QComboBox | QtWidgets.QSpinBox | QtWidgets.QDoubleSpinBox | QtWidgets.QLineEdit] = {}
 
         self.init_ui()
 
@@ -142,8 +142,9 @@ class RuleEditor(QtWidgets.QDialog):
             value_type: type = type(value)
 
             # 布尔值使用下拉框
+            widget: QtWidgets.QComboBox | QtWidgets.QSpinBox | QtWidgets.QDoubleSpinBox | QtWidgets.QLineEdit
             if value_type is bool:
-                widget: QtWidgets.QWidget = QtWidgets.QComboBox()
+                widget = QtWidgets.QComboBox()
                 widget.addItems(["True", "False"])
                 if value:
                     widget.setCurrentText("True")
@@ -213,7 +214,7 @@ class RiskManager(QtWidgets.QWidget):
 
         self.main_engine: MainEngine = main_engine
         self.event_engine: EventEngine = event_engine
-        self.rm_engine: RiskEngine = main_engine.get_engine(APP_NAME)
+        self.rm_engine: RiskEngine = cast(RiskEngine, main_engine.get_engine(APP_NAME))
 
         self.rule_widgets: dict[str, RuleWidget] = {}
 
