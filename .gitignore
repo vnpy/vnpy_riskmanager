@@ -137,3 +137,6 @@ dmypy.json
 
 vnpy_riskengine/
 .cursor/
+
+# Type checker / linter / test caches
+.ruff_cache/
