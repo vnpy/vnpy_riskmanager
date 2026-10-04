@@ -5,12 +5,13 @@ from collections.abc import Callable
 from typing import Any, cast
 from pathlib import Path
 from glob import glob
-from types import ModuleType
+from types import FunctionType, MethodType, ModuleType
 
 try:
     import winsound
 except ImportError:
-    winsound = None     # type: ignore
+    # import 和 except 分支共用 winsound 这个名字，mypy 把后面的注解看成重复定义。
+    winsound: ModuleType | None = None  # type: ignore[no-redef]
 
 from vnpy.event import Event, EventEngine
 from vnpy.trader.event import (
@@ -77,6 +78,9 @@ class RiskEngine(BaseEngine):
         self.load_rules_from_folder(path_2, "rules")
 
         # 实例化收集到的规则类
+        class_name: str
+        rule_class: type[RuleTemplate]
+        module_name: str
         for class_name, (rule_class, module_name) in self.rule_classes.items():
             self.add_rule(rule_class)
 
@@ -87,9 +91,11 @@ class RiskEngine(BaseEngine):
 
     def load_rules_from_folder(self, folder_path: Path, module_name: str) -> None:
         """从文件夹加载本地工具"""
+        suffix: str
         for suffix in ["py", "pyd", "so"]:
             pathname: str = str(folder_path.joinpath(f"*.{suffix}"))
 
+            filepath: str
             for filepath in glob(pathname):
                 filename: str = Path(filepath).stem
 
@@ -104,6 +110,7 @@ class RiskEngine(BaseEngine):
         try:
             module: ModuleType = importlib.import_module(module_name)
 
+            name: str
             for name in dir(module):
                 value: Any = getattr(module, name)
                 if (
@@ -135,6 +142,7 @@ class RiskEngine(BaseEngine):
     def register_events(self) -> None:
         """检测规则需要的事件类型并注册"""
         # 遍历所有规则，检测并缓存需要回调的规则
+        rule: RuleTemplate
         for rule in self.rules.values():
             if self.needs_callback(rule, "on_tick"):
                 self.tick_rules.append(rule)
@@ -157,30 +165,34 @@ class RiskEngine(BaseEngine):
 
     def needs_callback(self, rule: RuleTemplate, method_name: str) -> bool:
         """检测规则是否重写了某个回调方法"""
-        rule_method = getattr(rule, method_name)
-        base_method = getattr(RuleTemplate, method_name)
+        rule_method: MethodType = getattr(rule, method_name)
+        base_method: FunctionType = getattr(RuleTemplate, method_name)
         return rule_method.__func__ is not base_method
 
     def process_tick_event(self, event: Event) -> None:
         """处理行情事件"""
         tick: TickData = event.data
+        rule: RuleTemplate
         for rule in self.tick_rules:
             rule.on_tick(tick)
 
     def process_order_event(self, event: Event) -> None:
         """处理委托事件"""
         order: OrderData = event.data
+        rule: RuleTemplate
         for rule in self.order_rules:
             rule.on_order(order)
 
     def process_trade_event(self, event: Event) -> None:
         """处理成交事件"""
         trade: TradeData = event.data
+        rule: RuleTemplate
         for rule in self.trade_rules:
             rule.on_trade(trade)
 
     def process_timer_event(self, event: Event) -> None:
         """处理定时事件"""
+        rule: RuleTemplate
         for rule in self.timer_rules:
             rule.on_timer()
 
@@ -194,6 +206,7 @@ class RiskEngine(BaseEngine):
 
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
         """检查是否允许发单"""
+        rule: RuleTemplate
         for rule in self.rules.values():
             if (
                 rule.active                                         # 启用规则

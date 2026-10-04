@@ -47,13 +47,15 @@ class RuleWidget(QtWidgets.QGroupBox):
         # 参数部分
         parameter_root: QtWidgets.QTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.tree, ["参数"])
         parameters: dict = data["parameters"]
+        field: str
+        value: object
         for field, value in parameters.items():
             name: str = self.risk_engine.get_field_name(field)
             item: QtWidgets.QTreeWidgetItem = QtWidgets.QTreeWidgetItem(parameter_root, ["", name, str(value)])
             self.items[field] = item
 
         # 变量部分
-        variable_root = QtWidgets.QTreeWidgetItem(self.tree, ["变量"])
+        variable_root: QtWidgets.QTreeWidgetItem = QtWidgets.QTreeWidgetItem(self.tree, ["变量"])
         variables: dict = data["variables"]
         for field, value in variables.items():
             name = self.risk_engine.get_field_name(field)
@@ -62,6 +64,8 @@ class RuleWidget(QtWidgets.QGroupBox):
                 item = QtWidgets.QTreeWidgetItem(variable_root, ["", name])
                 self.items[field] = item
 
+                k: str
+                v: object
                 for k, v in value.items():
                     sub_item: QtWidgets.QTreeWidgetItem = QtWidgets.QTreeWidgetItem(item, ["", "", k, str(v)])
                     self.items[f"{field}.{k}"] = sub_item
@@ -78,6 +82,8 @@ class RuleWidget(QtWidgets.QGroupBox):
         # 参数部分
         parameters: dict = data["parameters"]
 
+        field: str
+        value: object
         for field, value in parameters.items():
             item: QtWidgets.QTreeWidgetItem = cast(QtWidgets.QTreeWidgetItem, self.items.get(field))
             item.setText(2, str(value))
@@ -89,6 +95,8 @@ class RuleWidget(QtWidgets.QGroupBox):
             if isinstance(value, dict):
                 item = self.items[field]
 
+                k: str
+                v: object
                 for k, v in value.items():
                     sub_item: QtWidgets.QTreeWidgetItem | None = self.items.get(f"{field}.{k}")
                     if sub_item:
@@ -137,6 +145,9 @@ class RuleEditor(QtWidgets.QDialog):
 
         form: QtWidgets.QFormLayout = QtWidgets.QFormLayout()
 
+        # 参数值有布尔、整数、浮点和字符串，按 type() 分支不会收窄。
+        field: str
+        value: Any
         for field, value in self.parameters.items():
             name: str = self.risk_engine.get_field_name(field)
             value_type: type = type(value)
@@ -188,6 +199,8 @@ class RuleEditor(QtWidgets.QDialog):
         """获取当前所有参数配置"""
         rule_setting: dict = {}
 
+        field: str
+        widget: QtWidgets.QComboBox | QtWidgets.QSpinBox | QtWidgets.QDoubleSpinBox | QtWidgets.QLineEdit
         for field, widget in self.widgets.items():
             if isinstance(widget, QtWidgets.QComboBox):
                 value: Any = (widget.currentText() == "True")
@@ -232,6 +245,7 @@ class RiskManager(QtWidgets.QWidget):
         self.list_widget.addItems(rule_names)
 
         self.stacked_widget: QtWidgets.QStackedWidget = QtWidgets.QStackedWidget()
+        rule_name: str
         for rule_name in rule_names:
             rule_widget: RuleWidget = RuleWidget(rule_name, self.rm_engine)
             self.stacked_widget.addWidget(rule_widget)

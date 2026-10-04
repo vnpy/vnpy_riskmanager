@@ -45,9 +45,10 @@ class RuleTemplate:
 
     def update_setting(self, rule_setting: dict) -> None:
         """更新风控规则参数"""
+        name: str
         for name in self.parameters.keys():
             if name in rule_setting:
-                value = rule_setting[name]
+                value: object = rule_setting[name]
                 setattr(self, name, value)
 
     def check_allowed(self, req: OrderRequest, gateway_name: str) -> bool:
@@ -85,6 +86,7 @@ class RuleTemplate:
     def get_data(self) -> dict[str, Any]:
         """获取数据"""
         parameters: dict[str, Any] = {}
+        name: str
         for name in self.parameters.keys():
             value: Any = getattr(self, name)
             parameters[name] = value
